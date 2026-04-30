@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pac-Man  | Presentación interactiva</title>
+  <title>PACMAN - JavaScript Canvas</title>
   <style>
     :root {
       --bg: #0b0b2b;
@@ -34,33 +34,33 @@
       padding: 20px;
     }
 
-    .demo-container {
+    .game-container {
       width: 100%;
       max-width: 800px;
     }
 
-    .demo-header {
+    .game-header {
       text-align: center;
       margin-bottom: 20px;
     }
 
-    .demo-header h1 {
-      font-size: 2.5rem;
+    .game-header h1 {
+      font-size: 2.8rem;
       background: linear-gradient(135deg, #ffd400, #ffaa00);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
       text-shadow: 0 0 20px rgba(255, 212, 0, 0.3);
-      letter-spacing: 2px;
+      letter-spacing: 4px;
     }
 
-    .demo-header p {
+    .game-header p {
       color: #cfd7ffcc;
       margin-top: 8px;
       font-size: 0.9rem;
     }
 
-    .demo-card {
+    .game-card {
       background: rgba(255, 255, 255, 0.03);
       border-radius: 20px;
       padding: 20px;
@@ -91,15 +91,15 @@
       transform: scale(1.02);
     }
 
-    .demo-info {
-      min-width: 200px;
+    .game-info {
+      min-width: 220px;
       background: rgba(0, 0, 0, 0.5);
       border-radius: 12px;
       padding: 16px;
       backdrop-filter: blur(5px);
     }
 
-    .demo-info h3 {
+    .game-info h3 {
       font-size: 1rem;
       margin-bottom: 12px;
       color: #ffd400;
@@ -126,7 +126,7 @@
       font-size: 0.7rem;
     }
 
-    .demo-controls {
+    .game-controls {
       display: flex;
       gap: 10px;
       margin-top: 15px;
@@ -166,27 +166,12 @@
       margin-top: 15px;
     }
 
-    .score-demo {
+    .score-display {
       font-size: 1.5rem;
       font-weight: bold;
       color: #ffd400;
       text-align: center;
       margin: 10px 0;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .demo-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #ff5b5b, #ff2b2b);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      margin-left: 10px;
-      animation: pulse 2s infinite;
     }
 
     footer {
@@ -207,56 +192,51 @@
   </style>
 </head>
 <body>
-  <div class="demo-container">
-    <div class="demo-header">
-      <h1>
-        PAC-MAN 
-        <span class="demo-badge"> LOOP</span>
-      </h1>
-      <p>Visualización  del juego </p>
+  <div class="game-container">
+    <div class="game-header">
+      <h1>PACMAN</h1>
+      <p>JavaScript + Canvas | El clásico arcade renovado</p>
     </div>
 
-    <div class="demo-card">
+    <div class="game-card">
       <div class="game-area">
-        <canvas id="demoCanvas" width="320" height="320"></canvas>
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
         
-        <div class="demo-info">
-          <h3>🎮 PACMAN</h3>
+        <div class="game-info">
+          <h3>🎮 Información</h3>
           <ul class="feature-list">
-            <li>Pacman se mueve </li>
-            <li>esto es javascript y canvas</li>
+            <li>Pacman se mueve</li>
+            <li>Esto es JavaScript y Canvas</li>
             <li>VSe viene el cierre de notas</li>
-            <li>Fantasmas con practicos sin presentar</li>
+            <li>Fantasmas con prácticos sin presentar</li>
             <li>Power Pellets incluidos</li>
             <li>Modo asustado (fantasmas azules)</li>
           </ul>
           
-          <div class="score-demo" id="demoScore">
+          <div class="score-display">
             Score: <span id="scoreValue">0</span>
           </div>
           
-          <div class="status-badge" id="demoStatus">
-            🟡 DEMO EN EJECUCIÓN
+          <div class="status-badge" id="gameStatus">
+            🟡 EN EJECUCIÓN
           </div>
           
-          <div class="demo-controls">
-            <button id="resetDemoBtn">🔄 Reiniciar Demo</button>
-            <button id="fullGameBtn" class="secondary">🎮 Jugar ahora</button>
+          <div class="game-controls">
+            <button id="resetGameBtn">🔄 Reiniciar</button>
           </div>
         </div>
       </div>
     </div>
     
     <footer>
-      <p>Modo demo — Visualización continua del gameplay optimizado | 
-      <a href="#" id="fullGameLink">Jugar versión completa →</a></p>
+      <p>Controles: Flechas del teclado o WASD | ¡Come todos los puntos y evita a los fantasmas!</p>
     </footer>
   </div>
 
   <script>
     (() => {
       // ========== CONFIGURACIÓN ==========
-      const canvas = document.getElementById('demoCanvas');
+      const canvas = document.getElementById('gameCanvas');
       let ctx = canvas.getContext('2d');
       
       const TILE = 16;
@@ -264,13 +244,13 @@
       const ROWS = 20;
       const TILE_CENTER = TILE / 2;
       
-      // Velocidad fija (independiente del framerate)
+      // Velocidades fijas
       const PAC_SPEED = 1.8;
       const GHOST_SPEED = 1.3;
       const GHOST_FRIGHTENED_SPEED = 1.0;
       
       // Mapa
-      const demoMap = [
+      const gameMap = [
         "11111111111111111111",
         "10000000001100000001",
         "10111101101101111101",
@@ -293,7 +273,7 @@
         "11111111111111111111"
       ];
       
-      let map = demoMap.map(row => row.split('').map(ch => +ch));
+      let map = gameMap.map(row => row.split('').map(ch => +ch));
       
       function setupCanvas() {
         const DPR = window.devicePixelRatio || 1;
@@ -345,13 +325,13 @@
         const newPx = px + dir.x;
         const newPy = py + dir.y;
         
-        // Calcular los 4 puntos cardinales del círculo
+        // Verificar múltiples puntos del círculo
         const checkPoints = [
-          {x: newPx, y: newPy},                                    // centro
-          {x: newPx + radius * 0.7, y: newPy},                     // derecha
-          {x: newPx - radius * 0.7, y: newPy},                     // izquierda
-          {x: newPx, y: newPy + radius * 0.7},                     // abajo
-          {x: newPx, y: newPy - radius * 0.7}                      // arriba
+          {x: newPx, y: newPy},
+          {x: newPx + radius * 0.7, y: newPy},
+          {x: newPx - radius * 0.7, y: newPy},
+          {x: newPx, y: newPy + radius * 0.7},
+          {x: newPx, y: newPy - radius * 0.7}
         ];
         
         for (const point of checkPoints) {
@@ -364,13 +344,6 @@
         return true;
       }
       
-      function getTileFromPixels(px, py) {
-        return {
-          x: Math.floor(px / TILE),
-          y: Math.floor(py / TILE)
-        };
-      }
-      
       // ========== PACMAN ==========
       const pac = {
         x: 1, y: 1,
@@ -381,7 +354,13 @@
         mouth: 0,
         alive: true,
         radius: 6,
-        autoChangeTimer: 0
+        moveTimer: 0
+      };
+      
+      // Controles de teclado
+      const keys = {
+        ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+        w: false, s: false, a: false, d: false
       };
       
       // ========== CLASE GHOST ==========
@@ -398,7 +377,6 @@
           this.color = color;
           this.radius = 6;
           this.frightened = false;
-          this.moveCounter = 0;
         }
         
         canMoveInDirection(dir) {
@@ -410,7 +388,7 @@
         isCentered() {
           const centerX = this.x * TILE + TILE_CENTER;
           const centerY = this.y * TILE + TILE_CENTER;
-          return Math.abs(this.px - centerX) < 1 && Math.abs(this.py - centerY) < 1;
+          return Math.abs(this.px - centerX) < 2 && Math.abs(this.py - centerY) < 2;
         }
         
         getValidDirections() {
@@ -496,11 +474,9 @@
       
       let score = 0;
       let running = true;
-      let lastTimestamp = 0;
       let frightenedMode = false;
       let frightenedTimer = 0;
       const FRIGHTENED_DURATION = 8000;
-      let frameCount = 0;
       
       function updateScoreDisplay() {
         document.getElementById('scoreValue').textContent = score;
@@ -514,7 +490,7 @@
         }
       }
       
-      // Comer puntos (detección mejorada)
+      // Comer puntos
       function eatDotAt(tileX, tileY) {
         if (dots[tileY] && dots[tileY][tileX]) {
           dots[tileY][tileX] = false;
@@ -539,50 +515,36 @@
         return false;
       }
       
-      // Movimiento automático de Pacman
+      // Obtener dirección del teclado
+      function getInputDirection() {
+        if (keys.ArrowUp || keys.w) return {x: 0, y: -1};
+        if (keys.ArrowDown || keys.s) return {x: 0, y: 1};
+        if (keys.ArrowLeft || keys.a) return {x: -1, y: 0};
+        if (keys.ArrowRight || keys.d) return {x: 1, y: 0};
+        return null;
+      }
+      
+      // Actualizar movimiento de Pacman con controles
       function updatePacmanMovement() {
-        // Decidir nueva dirección en intersecciones
-        const currentTile = {x: Math.floor(pac.px / TILE), y: Math.floor(pac.py / TILE)};
-        const isAtIntersection = (Math.abs(pac.px - (currentTile.x * TILE + TILE_CENTER)) < 2 &&
-                                   Math.abs(pac.py - (currentTile.y * TILE + TILE_CENTER)) < 2);
+        // Verificar si está en una intersección para cambiar dirección
+        const currentTileX = Math.floor(pac.px / TILE);
+        const currentTileY = Math.floor(pac.py / TILE);
+        const isAtIntersection = (Math.abs(pac.px - (currentTileX * TILE + TILE_CENTER)) < 3 &&
+                                   Math.abs(pac.py - (currentTileY * TILE + TILE_CENTER)) < 3);
         
         if (isAtIntersection) {
-          pac.autoChangeTimer++;
-          
-          if (pac.autoChangeTimer > 25) {
-            pac.autoChangeTimer = 0;
-            
-            const validDirs = [];
-            const dirs = [
-              {x: 1, y: 0}, {x: -1, y: 0},
-              {x: 0, y: 1}, {x: 0, y: -1}
-            ];
-            
-            for (const d of dirs) {
-              const newX = currentTile.x + d.x;
-              const newY = currentTile.y + d.y;
-              if (!isWall(newX, newY)) {
-                validDirs.push(d);
-              }
+          // Intentar aplicar la dirección solicitada por el teclado
+          const inputDir = getInputDirection();
+          if (inputDir) {
+            const newX = currentTileX + inputDir.x;
+            const newY = currentTileY + inputDir.y;
+            if (!isWall(newX, newY)) {
+              pac.dir = inputDir;
             }
-            
-            if (validDirs.length > 0) {
-              const opposite = {x: -pac.dir.x, y: -pac.dir.y};
-              let possible = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
-              if (possible.length === 0) possible = validDirs;
-              pac.nextDir = possible[Math.floor(Math.random() * possible.length)];
-            }
-          }
-          
-          // Intentar cambiar dirección
-          const newX = currentTile.x + pac.nextDir.x;
-          const newY = currentTile.y + pac.nextDir.y;
-          if (!isWall(newX, newY)) {
-            pac.dir = {x: pac.nextDir.x, y: pac.nextDir.y};
           }
         }
         
-        // Mover Pacman
+        // Mover Pacman en la dirección actual
         if (canMoveTo(pac.px, pac.py, pac.dir, pac.radius)) {
           pac.px += pac.dir.x * PAC_SPEED;
           pac.py += pac.dir.y * PAC_SPEED;
@@ -595,9 +557,13 @@
           pac.x = newTileX;
           pac.y = newTileY;
         }
+        
+        // Animar boca
+        pac.mouth += 0.1;
+        if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
       }
       
-      function resetDemo() {
+      function resetGame() {
         resetPowerPellets();
         resetDots();
         
@@ -608,7 +574,6 @@
         pac.nextDir = {x: 1, y: 0};
         pac.alive = true;
         pac.mouth = 0;
-        pac.autoChangeTimer = 0;
         
         ghosts[0] = new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0});
         ghosts[1] = new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0});
@@ -618,10 +583,10 @@
         frightenedMode = false;
         frightenedTimer = 0;
         score = 0;
-        updateScoreDisplay();
         running = true;
-        document.getElementById('demoStatus').innerHTML = '🟡 DEMO ';
-        document.getElementById('demoStatus').style.background = 'rgba(255, 212, 0, 0.2)';
+        updateScoreDisplay();
+        document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
+        document.getElementById('gameStatus').style.background = 'rgba(255, 212, 0, 0.2)';
       }
       
       function update() {
@@ -629,7 +594,7 @@
         
         // Modo asustado
         if (frightenedMode) {
-          frightenedTimer -= 16; // ~60fps
+          frightenedTimer -= 16;
           if (frightenedTimer <= 0) {
             frightenedMode = false;
             for (const g of ghosts) {
@@ -641,20 +606,16 @@
         // Mover Pacman
         updatePacmanMovement();
         
-        // Comer puntos (verificar cada frame)
+        // Comer puntos
         eatDotAt(pac.x, pac.y);
         eatPowerPelletAt(pac.x, pac.y);
-        
-        // Animar boca
-        pac.mouth += 0.05;
-        if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
         
         // Actualizar fantasmas
         for (const g of ghosts) {
           g.update();
         }
         
-        // Verificar si se acabaron los puntos
+        // Verificar victoria
         let remainingDots = 0;
         for (let y = 0; y < ROWS; y++) {
           for (let x = 0; x < COLS; x++) {
@@ -664,7 +625,9 @@
         let remainingPower = powerPellets.filter(p => p.active).length;
         
         if (remainingDots === 0 && remainingPower === 0) {
-          resetDemo();
+          running = false;
+          document.getElementById('gameStatus').innerHTML = '🏆 ¡GANASTE! 🏆';
+          document.getElementById('gameStatus').style.background = 'rgba(76, 175, 80, 0.3)';
           return;
         }
         
@@ -680,7 +643,9 @@
               updateScoreDisplay();
               g.respawn();
             } else {
-              resetDemo();
+              running = false;
+              document.getElementById('gameStatus').innerHTML = '💀 GAME OVER 💀';
+              document.getElementById('gameStatus').style.background = 'rgba(255, 91, 91, 0.3)';
               return;
             }
           }
@@ -722,7 +687,6 @@
             ctx.beginPath();
             ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6, 0, Math.PI * 2);
             ctx.fill();
-            // Animación de brillo
             const pulse = Math.sin(Date.now() * 0.008) * 1.5;
             ctx.fillStyle = '#ffdd88';
             ctx.beginPath();
@@ -779,7 +743,7 @@
           ctx.arc(3.5, -1, 2.5, 0, Math.PI * 2);
           ctx.fill();
           
-          // Pupilas (siguen a Pacman)
+          // Pupilas
           const angleToPac = Math.atan2(pac.py - g.py, pac.px - g.px);
           const pupilOffsetX = Math.cos(angleToPac) * 1.2;
           const pupilOffsetY = Math.sin(angleToPac) * 1.2;
@@ -796,10 +760,37 @@
         }
       }
       
-      // Game loop con velocidad constante
+      // Eventos de teclado
+      window.addEventListener('keydown', (e) => {
+        const key = e.key;
+        if (keys.hasOwnProperty(key)) {
+          keys[key] = true;
+          e.preventDefault();
+        }
+        // Reiniciar con R
+        if (key === 'r' || key === 'R') {
+          resetGame();
+          e.preventDefault();
+        }
+      });
+      
+      window.addEventListener('keyup', (e) => {
+        const key = e.key;
+        if (keys.hasOwnProperty(key)) {
+          keys[key] = false;
+          e.preventDefault();
+        }
+      });
+      
+      // Botón de reinicio
+      document.getElementById('resetGameBtn').addEventListener('click', () => {
+        resetGame();
+      });
+      
+      // Game loop
       let lastTime = 0;
       let accumulator = 0;
-      const STEP = 16; // 60 fps aproximadamente
+      const STEP = 16;
       
       function gameLoop(currentTime) {
         requestAnimationFrame(gameLoop);
@@ -812,34 +803,17 @@
         let delta = Math.min(100, currentTime - lastTime);
         lastTime = currentTime;
         
-        // Actualizar lógica a intervalos fijos
         accumulator += delta;
         while (accumulator >= STEP) {
           update();
           accumulator -= STEP;
-          frameCount++;
         }
         
-        // Dibujar siempre (interpolación opcional)
         draw();
       }
       
-      // Botones
-      document.getElementById('resetDemoBtn').addEventListener('click', () => {
-        resetDemo();
-      });
-      
-      document.getElementById('fullGameBtn').addEventListener('click', () => {
-        alert('¡Guarda este archivo como pacman-full.html para jugar la versión completa!');
-      });
-      
-      document.getElementById('fullGameLink').addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('¡Guarda el juego completo como pacman-full.html para jugar!');
-      });
-      
-      // Iniciar
-      resetDemo();
+      // Iniciar juego
+      resetGame();
       requestAnimationFrame(gameLoop);
     })();
   </script>
