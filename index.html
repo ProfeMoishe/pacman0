@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pac-Man Demo | Presentación interactiva</title>
+  <style>
+    :root {
+      --bg: #0b0b2b;
+      --wall: #1536a6;
+      --dot: #ffd35a;
+      --pac: #ffd400;
+      --ghost1: #ff5b5b;
+      --ghost2: #5bd6ff;
+      --ghost3: #9b5bff;
+      --ghost4: #ffb36b;
+      --text: #f0f0f8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #071026 0%, #0f1630 50%, #1a1f3a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .demo-container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .demo-header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #ffd400, #ffaa00);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 20px rgba(255, 212, 0, 0.3);
+      letter-spacing: 2px;
+    }
+
+    .demo-header p {
+      color: #cfd7ffcc;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .demo-card {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .game-area {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    canvas {
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: pixelated;
+      background: #000;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    canvas:hover {
+      transform: scale(1.02);
+    }
+
+    .demo-info {
+      min-width: 200px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      padding: 16px;
+      backdrop-filter: blur(5px);
+    }
+
+    .demo-info h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      color: #ffd400;
+      border-left: 3px solid #ffd400;
+      padding-left: 10px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .feature-list li {
+      margin: 10px 0;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-list li::before {
+      content: "▶";
+      color: #ffd400;
+      font-size: 0.7rem;
+    }
+
+    .demo-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: linear-gradient(135deg, #ffd400, #ffaa00);
+      border: none;
+      color: #0b0b2b;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 212, 0, 0.3);
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #ffffff20, #ffffff10);
+      color: white;
+      border: 1px solid rgba(255, 212, 0, 0.3);
+    }
+
+    .status-badge {
+      background: rgba(255, 212, 0, 0.2);
+      border: 1px solid rgba(255, 212, 0, 0.3);
+      border-radius: 20px;
+      padding: 6px 12px;
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 15px;
+    }
+
+    .score-demo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffd400;
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .demo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff5b5b, #ff2b2b);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      margin-left: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #cfd7ff99;
+    }
+
+    footer a {
+      color: #ffd400;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <div class="demo-header">
+      <h1>
+        PAC-MAN 
+        <span class="demo-badge">DEMO LOOP</span>
+      </h1>
+      <p>Visualización automática del juego — Los fantasmas se mueven solos</p>
+    </div>
+
+    <div class="demo-card">
+      <div class="game-area">
+        <canvas id="demoCanvas" width="320" height="320"></canvas>
+        
+        <div class="demo-info">
+          <h3>🎮 Demo en bucle</h3>
+          <ul class="feature-list">
+            <li>Pacman se mueve automáticamente</li>
+            <li>Fantasmas con IA autónoma</li>
+            <li>Come puntos en bucle infinito</li>
+            <li>Power Pellets incluidos</li>
+            <li>Modo asustado (fantasmas azules)</li>
+          </ul>
+          
+          <div class="score-demo" id="demoScore">
+            Score: <span id="scoreValue">0</span>
+          </div>
+          
+          <div class="status-badge" id="demoStatus">
+            🟡 DEMO EN EJECUCIÓN
+          </div>
+          
+          <div class="demo-controls">
+            <button id="resetDemoBtn">🔄 Reiniciar Demo</button>
+            <button id="fullGameBtn" class="secondary">🎮 Jugar ahora</button>
+          </div>
+          <div class="status-badge" style="margin-top: 10px; font-size: 0.7rem;">
+            💡 Los fantasmas se asustan con los Power Pellets
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>Modo demo — Visualización continua del gameplay | 
+      <a href="#" id="fullGameLink">Jugar versión completa →</a></p>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      // ========== CONFIGURACIÓN DEL DEMO ==========
+      const canvas = document.getElementById('demoCanvas');
+      let ctx = canvas.getContext('2d');
+      
+      const TILE = 16;
+      const COLS = 20;
+      const ROWS = 20;
+      const W = TILE * COLS;
+      const H = TILE * ROWS;
+      
+      // Mapa (usaremos el mapa 1 para la demo)
+      const demoMap = [
+        "11111111111111111111",
+        "10000000001100000001",
+        "10111101101101111101",
+        "10000101000001000001",
+        "11110101111101110111",
+        "10000000000000000001",
+        "10111111101111111001",
+        "10000010001000000001",
+        "11111010101101111111",
+        "00001010100010100000",
+        "11101010110110110111",
+        "10000010001000000001",
+        "10111111101111111001",
+        "10000000000000000001",
+        "11110101111101110111",
+        "10000101000001000001",
+        "10111101101101111101",
+        "10000000001100000001",
+        "10000000000000000001",
+        "11111111111111111111"
+      ];
+      
+      let map = demoMap.map(row => row.split('').map(ch => +ch));
+      
+      // Configurar canvas
+      function setupCanvas() {
+        const DPR = window.devicePixelRatio || 1;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        canvas.width = Math.floor(W * DPR);
+        canvas.height = Math.floor(H * DPR);
+        ctx = canvas.getContext('2d');
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      }
+      setupCanvas();
+      
+      // Power Pellets
+      let powerPellets = [];
+      function resetPowerPellets() {
+        powerPellets = [];
+        const positions = [{x:1,y:1}, {x:18,y:1}, {x:1,y:18}, {x:18,y:18}];
+        for (const pos of positions) {
+          if (map[pos.y][pos.x] === 0) {
+            powerPellets.push({x: pos.x, y: pos.y, active: true});
+          }
+        }
+      }
+      
+      // Dots
+      let dots = [];
+      function resetDots() {
+        dots = [];
+        for (let y = 0; y < ROWS; y++) {
+          dots[y] = [];
+          for (let x = 0; x < COLS; x++) {
+            dots[y][x] = (map[y][x] === 0);
+          }
+        }
+        for (const pellet of powerPellets) {
+          if (pellet.active && dots[pellet.y] && dots[pellet.y][pellet.x]) {
+            dots[pellet.y][pellet.x] = false;
+          }
+        }
+      }
+      
+      // Estado del demo
+      let score = 0;
+      let running = true;
+      let lastTime = 0;
+      let frightenedMode = false;
+      let frightenedTimer = 0;
+      const FRIGHTENED_DURATION = 8000;
+      
+      // Pacman (movimiento automático)
+      const pac = {
+        x: 1, y: 1,
+        px: 1 * TILE + TILE/2,
+        py: 1 * TILE + TILE/2,
+        dir: {x: 1, y: 0},
+        nextDir: {x: 1, y: 0},
+        speed: 1.8,
+        mouth: 0,
+        alive: true,
+        radius: 10,
+        autoChangeTimer: 0
+      };
+      
+      // Clase Ghost
+      class Ghost {
+        constructor(x, y, color, startDir = {x: -1, y: 0}) {
+          this.startX = x;
+          this.startY = y;
+          this.x = x;
+          this.y = y;
+          this.px = x * TILE + TILE/2;
+          this.py = y * TILE + TILE/2;
+          this.dir = startDir;
+          this.originalColor = color;
+          this.color = color;
+          this.speed = 1.2;
+          this.radius = 10;
+          this.frightened = false;
+        }
+        
+        isCentered() {
+          const centerX = this.x * TILE + TILE/2;
+          const centerY = this.y * TILE + TILE/2;
+          return Math.abs(this.px - centerX) < 0.3 && Math.abs(this.py - centerY) < 0.3;
+        }
+        
+        getValidDirections() {
+          const valid = [];
+          const dirs = [
+            {x: 1, y: 0}, {x: -1, y: 0},
+            {x: 0, y: 1}, {x: 0, y: -1}
+          ];
+          for (const d of dirs) {
+            const nx = this.x + d.x;
+            const ny = this.y + d.y;
+            if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && map[ny][nx] === 0) {
+              valid.push(d);
+            }
+          }
+          return valid;
+        }
+        
+        setFrightened(enabled) {
+          this.frightened = enabled;
+          this.color = enabled ? '#6b6bff' : this.originalColor;
+          if (enabled) this.speed = 0.9;
+          else this.speed = 1.2;
+        }
+        
+        respawn() {
+          this.x = this.startX;
+          this.y = this.startY;
+          this.px = this.x * TILE + TILE/2;
+          this.py = this.y * TILE + TILE/2;
+          this.dir = {x: -1, y: 0};
+          this.setFrightened(false);
+        }
+        
+        update() {
+          const currentSpeed = this.speed;
+          
+          if (this.isCentered()) {
+            const validDirs = this.getValidDirections();
+            if (validDirs.length > 0) {
+              const opposite = {x: -this.dir.x, y: -this.dir.y};
+              let possibleDirs = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
+              if (possibleDirs.length === 0) possibleDirs = validDirs;
+              
+              if (this.frightened) {
+                const randomIndex = Math.floor(Math.random() * possibleDirs.length);
+                this.dir = possibleDirs[randomIndex];
+              } else {
+                possibleDirs.sort((a, b) => {
+                  const distA = Math.abs((this.x + a.x) - pac.x) + Math.abs((this.y + a.y) - pac.y);
+                  const distB = Math.abs((this.x + b.x) - pac.x) + Math.abs((this.y + b.y) - pac.y);
+                  return distA - distB;
+                });
+                this.dir = possibleDirs[0];
+              }
+            }
+          }
+          
+          this.px += this.dir.x * currentSpeed;
+          this.py += this.dir.y * currentSpeed;
+          
+          const newX = Math.round((this.px - TILE/2) / TILE);
+          const newY = Math.round((this.py - TILE/2) / TILE);
+          if (newX >= 0 && newX < COLS && newY >= 0 && newY < ROWS && map[newY][newX] === 0) {
+            this.x = newX;
+            this.y = newY;
+          } else {
+            this.px = this.x * TILE + TILE/2;
+            this.py = this.y * TILE + TILE/2;
+          }
+        }
+      }
+      
+      const ghosts = [
+        new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0}),
+        new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0}),
+        new Ghost(16, 16, '#9b5bff', {x: -1, y: 0}),
+        new Ghost(2, 18, '#ffb36b', {x: 1, y: 0})
+      ];
+      
+      // Funciones auxiliares
+      function updateScoreDisplay() {
+        document.getElementById('scoreValue').textContent = score;
+      }
+      
+      function canMoveTile(tx, ty) {
+        if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return false;
+        return map[ty][tx] === 0;
+      }
+      
+      function isCentered(px, py) {
+        const x = Math.round((px - TILE/2) / TILE);
+        const y = Math.round((py - TILE/2) / TILE);
+        const centerX = x * TILE + TILE/2;
+        const centerY = y * TILE + TILE/2;
+        return Math.abs(px - centerX) < 0.3 && Math.abs(py - centerY) < 0.3;
+      }
+      
+      function activateFrightenedMode() {
+        frightenedMode = true;
+        frightenedTimer = FRIGHTENED_DURATION;
+        for (const g of ghosts) {
+          g.setFrightened(true);
+        }
+      }
+      
+      // Movimiento automático de Pacman (cambia dirección aleatoriamente en intersecciones)
+      function autoMovePacman() {
+        if (isCentered(pac.px, pac.py)) {
+          pac.autoChangeTimer++;
+          
+          // Cambiar dirección aleatoriamente cada cierto tiempo
+          if (pac.autoChangeTimer > 20) {
+            pac.autoChangeTimer = 0;
+            
+            const validDirs = [];
+            const dirs = [
+              {x: 1, y: 0}, {x: -1, y: 0},
+              {x: 0, y: 1}, {x: 0, y: -1}
+            ];
+            
+            for (const d of dirs) {
+              const nx = pac.x + d.x;
+              const ny = pac.y + d.y;
+              if (canMoveTile(nx, ny)) {
+                validDirs.push(d);
+              }
+            }
+            
+            if (validDirs.length > 0) {
+              // Evitar retroceder si es posible
+              const opposite = {x: -pac.dir.x, y: -pac.dir.y};
+              let possible = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
+              if (possible.length === 0) possible = validDirs;
+              
+              const randomDir = possible[Math.floor(Math.random() * possible.length)];
+              pac.nextDir = randomDir;
+            }
+          }
+          
+          // Intentar girar
+          const nx = pac.x + pac.nextDir.x;
+          const ny = pac.y + pac.nextDir.y;
+          if (canMoveTile(nx, ny)) {
+            pac.dir = {x: pac.nextDir.x, y: pac.nextDir.y};
+          }
+        }
+      }
+      
+      function resetDemo() {
+        resetPowerPellets();
+        resetDots();
+        
+        pac.x = 1; pac.y = 1;
+        pac.px = 1 * TILE + TILE/2;
+        pac.py = 1 * TILE + TILE/2;
+        pac.dir = {x: 1, y: 0};
+        pac.nextDir = {x: 1, y: 0};
+        pac.alive = true;
+        pac.mouth = 0;
+        pac.autoChangeTimer = 0;
+        
+        ghosts[0] = new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0});
+        ghosts[1] = new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0});
+        ghosts[2] = new Ghost(16, 16, '#9b5bff', {x: -1, y: 0});
+        ghosts[3] = new Ghost(2, 18, '#ffb36b', {x: 1, y: 0});
+        
+        frightenedMode = false;
+        frightenedTimer = 0;
+        score = 0;
+        updateScoreDisplay();
+        running = true;
+        document.getElementById('demoStatus').innerHTML = '🟡 DEMO EN EJECUCIÓN';
+        document.getElementById('demoStatus').style.background = 'rgba(255, 212, 0, 0.2)';
+      }
+      
+      function update(dt) {
+        if (!running) return;
+        
+        // Modo asustado
+        if (frightenedMode) {
+          frightenedTimer -= dt;
+          if (frightenedTimer <= 0) {
+            frightenedMode = false;
+            for (const g of ghosts) {
+              g.setFrightened(false);
+            }
+          }
+        }
+        
+        // Movimiento automático de Pacman
+        autoMovePacman();
+        
+        // Mover Pacman
+        if (pac.dir.x !== 0 || pac.dir.y !== 0) {
+          const nextX = pac.x + pac.dir.x;
+          const nextY = pac.y + pac.dir.y;
+          
+          if (canMoveTile(nextX, nextY)) {
+            pac.px += pac.dir.x * pac.speed;
+            pac.py += pac.dir.y * pac.speed;
+            
+            if (isCentered(pac.px, pac.py)) {
+              pac.x = nextX;
+              pac.y = nextY;
+            }
+          } else {
+            pac.px = pac.x * TILE + TILE/2;
+            pac.py = pac.y * TILE + TILE/2;
+          }
+        }
+        
+        // Comer puntos
+        if (isCentered(pac.px, pac.py)) {
+          if (dots[pac.y] && dots[pac.y][pac.x]) {
+            dots[pac.y][pac.x] = false;
+            score += 10;
+            updateScoreDisplay();
+          }
+          
+          for (let i = 0; i < powerPellets.length; i++) {
+            const pellet = powerPellets[i];
+            if (pellet.active && pac.x === pellet.x && pac.y === pellet.y) {
+              pellet.active = false;
+              score += 50;
+              updateScoreDisplay();
+              activateFrightenedMode();
+              break;
+            }
+          }
+        }
+        
+        // Verificar si se comieron todos los puntos (reiniciar demo)
+        let remainingDots = 0;
+        for (let y = 0; y < ROWS; y++) {
+          for (let x = 0; x < COLS; x++) {
+            if (dots[y] && dots[y][x]) remainingDots++;
+          }
+        }
+        let remainingPower = powerPellets.filter(p => p.active).length;
+        
+        if (remainingDots === 0 && remainingPower === 0) {
+          // Reiniciar automáticamente para demo continua
+          resetDemo();
+        }
+        
+        pac.mouth += dt * 0.01;
+        
+        // Actualizar fantasmas
+        for (const g of ghosts) {
+          g.update();
+        }
+        
+        // Colisiones
+        for (const g of ghosts) {
+          const dx = Math.abs(g.px - pac.px);
+          const dy = Math.abs(g.py - pac.py);
+          const distance = Math.hypot(dx, dy);
+          
+          if (distance < (pac.radius + g.radius) * 0.7) {
+            if (g.frightened) {
+              score += 200;
+              updateScoreDisplay();
+              g.respawn();
+            } else {
+              // Pacman muere en demo, reiniciar
+              resetDemo();
+            }
+          }
+        }
+      }
+      
+      function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, W, H);
+        
+        // Paredes
+        for (let y = 0; y < ROWS; y++) {
+          for (let x = 0; x < COLS; x++) {
+            if (map[y][x] === 1) {
+              ctx.fillStyle = '#1536a6';
+              ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+              ctx.fillStyle = 'rgba(0,0,0,0.2)';
+              ctx.fillRect(x * TILE + TILE*0.12, y * TILE + TILE*0.12, TILE*0.76, TILE*0.76);
+            }
+          }
+        }
+        
+        // Puntos
+        ctx.fillStyle = '#ffd35a';
+        for (let y = 0; y < ROWS; y++) {
+          for (let x = 0; x < COLS; x++) {
+            if (dots[y] && dots[y][x]) {
+              ctx.beginPath();
+              ctx.arc(x * TILE + TILE/2, y * TILE + TILE/2, 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+        
+        // Power Pellets
+        for (const pellet of powerPellets) {
+          if (pellet.active) {
+            ctx.fillStyle = '#ffaa44';
+            ctx.beginPath();
+            ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffdd88';
+            ctx.beginPath();
+            ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        
+        // Pacman
+        const mouthOpen = Math.abs(Math.sin(pac.mouth)) * 0.45;
+        let angle = 0;
+        if (pac.dir.x === 1) angle = 0;
+        else if (pac.dir.x === -1) angle = Math.PI;
+        else if (pac.dir.y === -1) angle = -Math.PI/2;
+        else if (pac.dir.y === 1) angle = Math.PI/2;
+        
+        ctx.fillStyle = '#ffd400';
+        ctx.beginPath();
+        ctx.arc(pac.px, pac.py, pac.radius, angle + mouthOpen, angle + Math.PI * 2 - mouthOpen);
+        ctx.lineTo(pac.px, pac.py);
+        ctx.fill();
+        
+        // Fantasmas
+        for (const g of ghosts) {
+          ctx.save();
+          ctx.translate(g.px, g.py);
+          
+          let useColor = g.color;
+          if (g.frightened && frightenedTimer < 2000 && Math.floor(Date.now() / 100) % 2 === 0) {
+            useColor = '#ffffff';
+          }
+          
+          ctx.fillStyle = useColor;
+          ctx.beginPath();
+          ctx.arc(0, -2, 9, Math.PI, 0);
+          ctx.rect(-9, -2, 18, 12);
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(-4, 0, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(4, 0, 2.6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.arc(-4, 0, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(4, 0, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+      
+      function gameLoop(ts) {
+        if (!lastTime) lastTime = ts;
+        let dt = ts - lastTime;
+        if (dt > 50) dt = 16;
+        lastTime = ts;
+        update(dt);
+        draw();
+        requestAnimationFrame(gameLoop);
+      }
+      
+      // Botones
+      document.getElementById('resetDemoBtn').addEventListener('click', () => {
+        resetDemo();
+      });
+      
+      document.getElementById('fullGameBtn').addEventListener('click', () => {
+        window.location.href = 'pacman-full.html';
+      });
+      
+      document.getElementById('fullGameLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'pacman-full.html';
+      });
+      
+      // Iniciar demo
+      resetDemo();
+      requestAnimationFrame(gameLoop);
+    })();
+  </script>
+</body>
+</html>
