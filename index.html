@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pac-Man | Presentación interactiva</title>
+  <title>Pac-Man  | Presentación interactiva</title>
   <style>
     :root {
       --bg: #0b0b2b;
@@ -213,7 +213,7 @@
         PAC-MAN 
         <span class="demo-badge">DEMO LOOP</span>
       </h1>
-      <p>Visualización del juego </p>
+      <p>Visualización automática del juego —</p>
     </div>
 
     <div class="demo-card">
@@ -224,10 +224,10 @@
           <h3>🎮 PACMAN</h3>
           <ul class="feature-list">
             <li>Pacman se mueve </li>
-            <li>dentro del curso</li>
-            <li>Fantasmas con practicos sin terminar</li>
-            <li>no saben la nota</li>
-            <li>se viene el finde largo</li>
+            <li>esto es javascript y canvas</li>
+            <li>VSe viene el cierre de notas</li>
+            <li>Fantasmas con practicos sin presentar</li>
+            <li>Power Pellets incluidos</li>
             <li>Modo asustado (fantasmas azules)</li>
           </ul>
           
@@ -236,19 +236,19 @@
           </div>
           
           <div class="status-badge" id="demoStatus">
-            🟡  EN EJECUCIÓN
+            🟡 DEMO EN EJECUCIÓN
           </div>
           
           <div class="demo-controls">
-            <button id="resetDemoBtn">🔄 Reiniciar </button>
-            <button id="fullGameBtn" class="secondary">🎮 Jugar </button>
+            <button id="resetDemoBtn">🔄 Reiniciar Demo</button>
+            <button id="fullGameBtn" class="secondary">🎮 Jugar ahora</button>
           </div>
         </div>
       </div>
     </div>
     
     <footer>
-      <p>Modo demo — Visualización continua del gameplay sin errores de colisión | 
+      <p>Modo demo — Visualización continua del gameplay optimizado | 
       <a href="#" id="fullGameLink">Jugar versión completa →</a></p>
     </footer>
   </div>
@@ -263,6 +263,11 @@
       const COLS = 20;
       const ROWS = 20;
       const TILE_CENTER = TILE / 2;
+      
+      // Velocidad fija (independiente del framerate)
+      const PAC_SPEED = 1.8;
+      const GHOST_SPEED = 1.3;
+      const GHOST_FRIGHTENED_SPEED = 1.0;
       
       // Mapa
       const demoMap = [
@@ -330,53 +335,40 @@
         }
       }
       
-      // ========== FUNCIÓN CRÍTICA: COLISIÓN DE PAREDES ==========
+      // ========== FUNCIONES DE COLISIÓN ==========
       function isWall(tileX, tileY) {
         if (tileX < 0 || tileX >= COLS || tileY < 0 || tileY >= ROWS) return true;
         return map[tileY][tileX] === 1;
       }
       
-      // Verificar si una posición en píxeles está colisionando con una pared
-      function checkCollision(px, py, radius, dirX, dirY) {
-        // Calcular las 4 esquinas del círculo
-        const testX = px + dirX * radius;
-        const testY = py + dirY * radius;
+      function canMoveTo(px, py, dir, radius) {
+        const newPx = px + dir.x;
+        const newPy = py + dir.y;
         
-        // Encontrar en qué tile está cada esquina
-        const tileX = Math.floor(testX / TILE);
-        const tileY = Math.floor(testY / TILE);
-        
-        // Verificar las 4 esquinas potenciales
-        const corners = [
-          {x: tileX, y: tileY},
-          {x: Math.floor((testX + radius) / TILE), y: tileY},
-          {x: tileX, y: Math.floor((testY + radius) / TILE)},
-          {x: Math.floor((testX + radius) / TILE), y: Math.floor((testY + radius) / TILE)}
+        // Calcular los 4 puntos cardinales del círculo
+        const checkPoints = [
+          {x: newPx, y: newPy},                                    // centro
+          {x: newPx + radius * 0.7, y: newPy},                     // derecha
+          {x: newPx - radius * 0.7, y: newPy},                     // izquierda
+          {x: newPx, y: newPy + radius * 0.7},                     // abajo
+          {x: newPx, y: newPy - radius * 0.7}                      // arriba
         ];
         
-        for (const corner of corners) {
-          if (isWall(corner.x, corner.y)) {
-            return true;
+        for (const point of checkPoints) {
+          const tileX = Math.floor(point.x / TILE);
+          const tileY = Math.floor(point.y / TILE);
+          if (isWall(tileX, tileY)) {
+            return false;
           }
         }
-        return false;
+        return true;
       }
       
-      // Obtener tile actual basado en posición en píxeles
       function getTileFromPixels(px, py) {
         return {
           x: Math.floor(px / TILE),
           y: Math.floor(py / TILE)
         };
-      }
-      
-      // Verificar si está centrado en un tile
-      function isCentered(px, py) {
-        const tileX = Math.floor(px / TILE);
-        const tileY = Math.floor(py / TILE);
-        const centerX = tileX * TILE + TILE_CENTER;
-        const centerY = tileY * TILE + TILE_CENTER;
-        return Math.abs(px - centerX) < 0.5 && Math.abs(py - centerY) < 0.5;
       }
       
       // ========== PACMAN ==========
@@ -386,14 +378,13 @@
         py: 1 * TILE + TILE_CENTER,
         dir: {x: 1, y: 0},
         nextDir: {x: 1, y: 0},
-        speed: 1.5,
         mouth: 0,
         alive: true,
         radius: 6,
         autoChangeTimer: 0
       };
       
-      // ========== CLASE GHOST CORREGIDA ==========
+      // ========== CLASE GHOST ==========
       class Ghost {
         constructor(x, y, color, startDir = {x: -1, y: 0}) {
           this.startX = x;
@@ -405,34 +396,30 @@
           this.dir = startDir;
           this.originalColor = color;
           this.color = color;
-          this.speed = 1.2;
           this.radius = 6;
           this.frightened = false;
-          this.targetDir = null;
+          this.moveCounter = 0;
         }
         
-        // Verificar si puede moverse en una dirección
         canMoveInDirection(dir) {
           const newX = this.x + dir.x;
           const newY = this.y + dir.y;
           return !isWall(newX, newY);
         }
         
-        // Verificar si está centrado
         isCentered() {
           const centerX = this.x * TILE + TILE_CENTER;
           const centerY = this.y * TILE + TILE_CENTER;
-          return Math.abs(this.px - centerX) < 0.5 && Math.abs(this.py - centerY) < 0.5;
+          return Math.abs(this.px - centerX) < 1 && Math.abs(this.py - centerY) < 1;
         }
         
-        // Obtener direcciones válidas
         getValidDirections() {
           const valid = [];
           const dirs = [
-            {x: 1, y: 0, name: 'right'},
-            {x: -1, y: 0, name: 'left'},
-            {x: 0, y: 1, name: 'down'},
-            {x: 0, y: -1, name: 'up'}
+            {x: 1, y: 0},
+            {x: -1, y: 0},
+            {x: 0, y: 1},
+            {x: 0, y: -1}
           ];
           
           for (const d of dirs) {
@@ -458,23 +445,20 @@
         }
         
         update() {
-          const currentSpeed = this.speed;
+          const currentSpeed = this.frightened ? GHOST_FRIGHTENED_SPEED : GHOST_SPEED;
           
-          // Cambiar dirección solo cuando está centrado
+          // Cambiar dirección en intersecciones
           if (this.isCentered()) {
             const validDirs = this.getValidDirections();
             
             if (validDirs.length > 0) {
-              // Evitar retroceder
               const opposite = {x: -this.dir.x, y: -this.dir.y};
               let possibleDirs = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
               if (possibleDirs.length === 0) possibleDirs = validDirs;
               
               if (this.frightened) {
-                // Movimiento aleatorio
                 this.dir = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
               } else {
-                // Perseguir a Pacman
                 possibleDirs.sort((a, b) => {
                   const nextA = {x: this.x + a.x, y: this.y + a.y};
                   const nextB = {x: this.x + b.x, y: this.y + b.y};
@@ -487,29 +471,18 @@
             }
           }
           
-          // Intentar mover
-          const newPx = this.px + this.dir.x * currentSpeed;
-          const newPy = this.py + this.dir.y * currentSpeed;
-          
-          // Verificar colisión antes de mover
-          if (!checkCollision(this.px, this.py, this.radius, this.dir.x, this.dir.y)) {
-            this.px = newPx;
-            this.py = newPy;
+          // Mover
+          if (canMoveTo(this.px, this.py, this.dir, this.radius)) {
+            this.px += this.dir.x * currentSpeed;
+            this.py += this.dir.y * currentSpeed;
             
-            // Actualizar coordenadas de tile
+            // Actualizar tile
             const newTileX = Math.floor(this.px / TILE);
             const newTileY = Math.floor(this.py / TILE);
-            
-            if (newTileX !== this.x || newTileY !== this.y) {
-              if (!isWall(newTileX, newTileY)) {
-                this.x = newTileX;
-                this.y = newTileY;
-              }
+            if (!isWall(newTileX, newTileY)) {
+              this.x = newTileX;
+              this.y = newTileY;
             }
-          } else {
-            // Si hay colisión, centrar en el tile actual
-            this.px = this.x * TILE + TILE_CENTER;
-            this.py = this.y * TILE + TILE_CENTER;
           }
         }
       }
@@ -523,10 +496,11 @@
       
       let score = 0;
       let running = true;
-      let lastTime = 0;
+      let lastTimestamp = 0;
       let frightenedMode = false;
       let frightenedTimer = 0;
       const FRIGHTENED_DURATION = 8000;
+      let frameCount = 0;
       
       function updateScoreDisplay() {
         document.getElementById('scoreValue').textContent = score;
@@ -540,13 +514,42 @@
         }
       }
       
-      // Movimiento automático de Pacman (sin atravesar paredes)
-      function autoMovePacman() {
-        // Cambiar dirección aleatoriamente en intersecciones
-        if (isCentered(pac.px, pac.py)) {
+      // Comer puntos (detección mejorada)
+      function eatDotAt(tileX, tileY) {
+        if (dots[tileY] && dots[tileY][tileX]) {
+          dots[tileY][tileX] = false;
+          score += 10;
+          updateScoreDisplay();
+          return true;
+        }
+        return false;
+      }
+      
+      function eatPowerPelletAt(tileX, tileY) {
+        for (let i = 0; i < powerPellets.length; i++) {
+          const pellet = powerPellets[i];
+          if (pellet.active && pellet.x === tileX && pellet.y === tileY) {
+            pellet.active = false;
+            score += 50;
+            updateScoreDisplay();
+            activateFrightenedMode();
+            return true;
+          }
+        }
+        return false;
+      }
+      
+      // Movimiento automático de Pacman
+      function updatePacmanMovement() {
+        // Decidir nueva dirección en intersecciones
+        const currentTile = {x: Math.floor(pac.px / TILE), y: Math.floor(pac.py / TILE)};
+        const isAtIntersection = (Math.abs(pac.px - (currentTile.x * TILE + TILE_CENTER)) < 2 &&
+                                   Math.abs(pac.py - (currentTile.y * TILE + TILE_CENTER)) < 2);
+        
+        if (isAtIntersection) {
           pac.autoChangeTimer++;
           
-          if (pac.autoChangeTimer > 30) {
+          if (pac.autoChangeTimer > 25) {
             pac.autoChangeTimer = 0;
             
             const validDirs = [];
@@ -556,56 +559,41 @@
             ];
             
             for (const d of dirs) {
-              const newX = pac.x + d.x;
-              const newY = pac.y + d.y;
+              const newX = currentTile.x + d.x;
+              const newY = currentTile.y + d.y;
               if (!isWall(newX, newY)) {
                 validDirs.push(d);
               }
             }
             
             if (validDirs.length > 0) {
-              // Evitar retroceder si es posible
               const opposite = {x: -pac.dir.x, y: -pac.dir.y};
               let possible = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
               if (possible.length === 0) possible = validDirs;
-              
               pac.nextDir = possible[Math.floor(Math.random() * possible.length)];
             }
           }
           
           // Intentar cambiar dirección
-          const newX = pac.x + pac.nextDir.x;
-          const newY = pac.y + pac.nextDir.y;
+          const newX = currentTile.x + pac.nextDir.x;
+          const newY = currentTile.y + pac.nextDir.y;
           if (!isWall(newX, newY)) {
             pac.dir = {x: pac.nextDir.x, y: pac.nextDir.y};
           }
         }
         
-        // Mover Pacman con verificación de colisión
-        if (pac.dir.x !== 0 || pac.dir.y !== 0) {
-          const newPx = pac.px + pac.dir.x * pac.speed;
-          const newPy = pac.py + pac.dir.y * pac.speed;
-          
-          if (!checkCollision(pac.px, pac.py, pac.radius, pac.dir.x, pac.dir.y)) {
-            pac.px = newPx;
-            pac.py = newPy;
-            
-            // Actualizar tile
-            const newTileX = Math.floor(pac.px / TILE);
-            const newTileY = Math.floor(pac.py / TILE);
-            if (newTileX !== pac.x || newTileY !== pac.y) {
-              if (!isWall(newTileX, newTileY)) {
-                pac.x = newTileX;
-                pac.y = newTileY;
-              }
-            }
-          } else {
-            // Centrar si hay colisión
-            pac.px = pac.x * TILE + TILE_CENTER;
-            pac.py = pac.y * TILE + TILE_CENTER;
-            pac.dir = {x: 0, y: 0};
-            pac.nextDir = {x: 0, y: 0};
-          }
+        // Mover Pacman
+        if (canMoveTo(pac.px, pac.py, pac.dir, pac.radius)) {
+          pac.px += pac.dir.x * PAC_SPEED;
+          pac.py += pac.dir.y * PAC_SPEED;
+        }
+        
+        // Actualizar tile de Pacman
+        const newTileX = Math.floor(pac.px / TILE);
+        const newTileY = Math.floor(pac.py / TILE);
+        if (!isWall(newTileX, newTileY)) {
+          pac.x = newTileX;
+          pac.y = newTileY;
         }
       }
       
@@ -636,12 +624,12 @@
         document.getElementById('demoStatus').style.background = 'rgba(255, 212, 0, 0.2)';
       }
       
-      function update(dt) {
+      function update() {
         if (!running) return;
         
         // Modo asustado
         if (frightenedMode) {
-          frightenedTimer -= dt;
+          frightenedTimer -= 16; // ~60fps
           if (frightenedTimer <= 0) {
             frightenedMode = false;
             for (const g of ghosts) {
@@ -651,39 +639,22 @@
         }
         
         // Mover Pacman
-        autoMovePacman();
+        updatePacmanMovement();
         
-        // Comer puntos (solo cuando está centrado)
-        if (isCentered(pac.px, pac.py)) {
-          // Puntos normales
-          if (dots[pac.y] && dots[pac.y][pac.x]) {
-            dots[pac.y][pac.x] = false;
-            score += 10;
-            updateScoreDisplay();
-          }
-          
-          // Power pellets
-          for (let i = 0; i < powerPellets.length; i++) {
-            const pellet = powerPellets[i];
-            if (pellet.active && pac.x === pellet.x && pac.y === pellet.y) {
-              pellet.active = false;
-              score += 50;
-              updateScoreDisplay();
-              activateFrightenedMode();
-              break;
-            }
-          }
-        }
+        // Comer puntos (verificar cada frame)
+        eatDotAt(pac.x, pac.y);
+        eatPowerPelletAt(pac.x, pac.y);
         
-        // Animar boca de Pacman
-        pac.mouth += dt * 0.01;
+        // Animar boca
+        pac.mouth += 0.05;
+        if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
         
         // Actualizar fantasmas
         for (const g of ghosts) {
           g.update();
         }
         
-        // Verificar si se acabaron los puntos (reiniciar demo)
+        // Verificar si se acabaron los puntos
         let remainingDots = 0;
         for (let y = 0; y < ROWS; y++) {
           for (let x = 0; x < COLS; x++) {
@@ -751,15 +722,17 @@
             ctx.beginPath();
             ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6, 0, Math.PI * 2);
             ctx.fill();
+            // Animación de brillo
+            const pulse = Math.sin(Date.now() * 0.008) * 1.5;
             ctx.fillStyle = '#ffdd88';
             ctx.beginPath();
-            ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 3, 0, Math.PI * 2);
+            ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 3 + pulse, 0, Math.PI * 2);
             ctx.fill();
           }
         }
         
         // Pacman
-        const mouthOpen = Math.abs(Math.sin(pac.mouth)) * 0.5;
+        const mouthOpen = 0.3 + Math.abs(Math.sin(pac.mouth)) * 0.3;
         let angle = 0;
         if (pac.dir.x === 1) angle = 0;
         else if (pac.dir.x === -1) angle = Math.PI;
@@ -772,14 +745,23 @@
         ctx.lineTo(pac.px, pac.py);
         ctx.fill();
         
+        // Ojo de Pacman
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        const eyeX = pac.px + (pac.dir.x * 2);
+        const eyeY = pac.py + (pac.dir.y * 2) - 2;
+        ctx.arc(eyeX, eyeY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        
         // Fantasmas
         for (const g of ghosts) {
           ctx.save();
           ctx.translate(g.px, g.py);
           
           let useColor = g.color;
-          if (g.frightened && frightenedTimer < 2000 && Math.floor(Date.now() / 100) % 2 === 0) {
-            useColor = '#ffffff';
+          if (g.frightened && frightenedTimer < 2000) {
+            const blink = Math.floor(Date.now() / 100) % 2 === 0;
+            useColor = blink ? '#ffffff' : '#6b6bff';
           }
           
           ctx.fillStyle = useColor;
@@ -787,31 +769,59 @@
           ctx.arc(0, -2, 8, Math.PI, 0);
           ctx.rect(-8, -2, 16, 11);
           ctx.fill();
+          
+          // Ojos blancos
           ctx.fillStyle = '#fff';
           ctx.beginPath();
-          ctx.arc(-3.5, 0, 2.2, 0, Math.PI * 2);
+          ctx.arc(-3.5, -1, 2.5, 0, Math.PI * 2);
           ctx.fill();
           ctx.beginPath();
-          ctx.arc(3.5, 0, 2.2, 0, Math.PI * 2);
+          ctx.arc(3.5, -1, 2.5, 0, Math.PI * 2);
           ctx.fill();
+          
+          // Pupilas (siguen a Pacman)
+          const angleToPac = Math.atan2(pac.py - g.py, pac.px - g.px);
+          const pupilOffsetX = Math.cos(angleToPac) * 1.2;
+          const pupilOffsetY = Math.sin(angleToPac) * 1.2;
+          
           ctx.fillStyle = '#000';
           ctx.beginPath();
-          ctx.arc(-3.5, 0, 1, 0, Math.PI * 2);
+          ctx.arc(-3.5 + pupilOffsetX, -1 + pupilOffsetY, 1.2, 0, Math.PI * 2);
           ctx.fill();
           ctx.beginPath();
-          ctx.arc(3.5, 0, 1, 0, Math.PI * 2);
+          ctx.arc(3.5 + pupilOffsetX, -1 + pupilOffsetY, 1.2, 0, Math.PI * 2);
           ctx.fill();
+          
           ctx.restore();
         }
       }
       
-      function gameLoop(ts) {
-        if (!lastTime) lastTime = ts;
-        let dt = Math.min(ts - lastTime, 32);
-        lastTime = ts;
-        update(dt);
-        draw();
+      // Game loop con velocidad constante
+      let lastTime = 0;
+      let accumulator = 0;
+      const STEP = 16; // 60 fps aproximadamente
+      
+      function gameLoop(currentTime) {
         requestAnimationFrame(gameLoop);
+        
+        if (!lastTime) {
+          lastTime = currentTime;
+          return;
+        }
+        
+        let delta = Math.min(100, currentTime - lastTime);
+        lastTime = currentTime;
+        
+        // Actualizar lógica a intervalos fijos
+        accumulator += delta;
+        while (accumulator >= STEP) {
+          update();
+          accumulator -= STEP;
+          frameCount++;
+        }
+        
+        // Dibujar siempre (interpolación opcional)
+        draw();
       }
       
       // Botones
