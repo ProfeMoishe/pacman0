@@ -83,12 +83,6 @@
       background: #000;
       border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-
-    canvas:hover {
-      transform: scale(1.02);
     }
 
     .game-info {
@@ -150,12 +144,6 @@
       box-shadow: 0 5px 15px rgba(255, 212, 0, 0.3);
     }
 
-    button.secondary {
-      background: linear-gradient(135deg, #ffffff20, #ffffff10);
-      color: white;
-      border: 1px solid rgba(255, 212, 0, 0.3);
-    }
-
     .status-badge {
       background: rgba(255, 212, 0, 0.2);
       border: 1px solid rgba(255, 212, 0, 0.3);
@@ -179,15 +167,6 @@
       margin-top: 20px;
       font-size: 0.75rem;
       color: #cfd7ff99;
-    }
-
-    footer a {
-      color: #ffd400;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
     }
   </style>
 </head>
@@ -224,12 +203,15 @@
           <div class="game-controls">
             <button id="resetGameBtn">🔄 Reiniciar</button>
           </div>
+          <div style="margin-top: 10px; font-size: 0.7rem; text-align: center;">
+            ← ↑ ↓ → o WASD | R = Reiniciar
+          </div>
         </div>
       </div>
     </div>
     
     <footer>
-      <p>Controles: Flechas del teclado o WASD | ¡Come todos los puntos y evita a los fantasmas!</p>
+      <p>¡Come todos los puntos y evita a los fantasmas! Los power pellets hacen a los fantasmas comestibles.</p>
     </footer>
   </div>
 
@@ -244,12 +226,12 @@
       const ROWS = 20;
       const TILE_CENTER = TILE / 2;
       
-      // Velocidades fijas
-      const PAC_SPEED = 1.8;
-      const GHOST_SPEED = 1.3;
+      // Velocidades
+      const PAC_SPEED = 2.0;
+      const GHOST_SPEED = 1.5;
       const GHOST_FRIGHTENED_SPEED = 1.0;
       
-      // Mapa
+      // MAPA CORREGIDO - sin área sin puntos, con paredes correctas
       const gameMap = [
         "11111111111111111111",
         "10000000001100000001",
@@ -260,7 +242,7 @@
         "10111111101111111001",
         "10000010001000000001",
         "11111010101101111111",
-        "00001010100010100000",
+        "11111010101101111111",
         "11101010110110110111",
         "10000010001000000001",
         "10111111101111111001",
@@ -325,13 +307,12 @@
         const newPx = px + dir.x;
         const newPy = py + dir.y;
         
-        // Verificar múltiples puntos del círculo
         const checkPoints = [
           {x: newPx, y: newPy},
-          {x: newPx + radius * 0.7, y: newPy},
-          {x: newPx - radius * 0.7, y: newPy},
-          {x: newPx, y: newPy + radius * 0.7},
-          {x: newPx, y: newPy - radius * 0.7}
+          {x: newPx + radius * 0.6, y: newPy},
+          {x: newPx - radius * 0.6, y: newPy},
+          {x: newPx, y: newPy + radius * 0.6},
+          {x: newPx, y: newPy - radius * 0.6}
         ];
         
         for (const point of checkPoints) {
@@ -350,18 +331,14 @@
         px: 1 * TILE + TILE_CENTER,
         py: 1 * TILE + TILE_CENTER,
         dir: {x: 1, y: 0},
-        nextDir: {x: 1, y: 0},
+        desiredDir: {x: 1, y: 0},
         mouth: 0,
         alive: true,
-        radius: 6,
-        moveTimer: 0
+        radius: 6
       };
       
-      // Controles de teclado
-      const keys = {
-        ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
-        w: false, s: false, a: false, d: false
-      };
+      // Controles de teclado - mejorado
+      let inputDirection = {x: 0, y: 0};
       
       // ========== CLASE GHOST ==========
       class Ghost {
@@ -425,7 +402,6 @@
         update() {
           const currentSpeed = this.frightened ? GHOST_FRIGHTENED_SPEED : GHOST_SPEED;
           
-          // Cambiar dirección en intersecciones
           if (this.isCentered()) {
             const validDirs = this.getValidDirections();
             
@@ -449,12 +425,10 @@
             }
           }
           
-          // Mover
           if (canMoveTo(this.px, this.py, this.dir, this.radius)) {
             this.px += this.dir.x * currentSpeed;
             this.py += this.dir.y * currentSpeed;
             
-            // Actualizar tile
             const newTileX = Math.floor(this.px / TILE);
             const newTileY = Math.floor(this.py / TILE);
             if (!isWall(newTileX, newTileY)) {
@@ -465,11 +439,12 @@
         }
       }
       
+      // FANTASMAS CON POSICIONES CORRECTAS (todas en áreas válidas)
       const ghosts = [
-        new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0}),
-        new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0}),
-        new Ghost(16, 16, '#9b5bff', {x: -1, y: 0}),
-        new Ghost(2, 18, '#ffb36b', {x: 1, y: 0})
+        new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0}),   // Rojo - esquina superior derecha
+        new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0}),  // Azul - esquina inferior derecha
+        new Ghost(2, 18, '#ffb36b', {x: 1, y: 0}),    // Naranja - esquina inferior izquierda
+        new Ghost(2, 1, '#9b5bff', {x: 1, y: 0})      // Morado - esquina superior izquierda (corregido)
       ];
       
       let score = 0;
@@ -490,7 +465,6 @@
         }
       }
       
-      // Comer puntos
       function eatDotAt(tileX, tileY) {
         if (dots[tileY] && dots[tileY][tileX]) {
           dots[tileY][tileX] = false;
@@ -515,42 +489,33 @@
         return false;
       }
       
-      // Obtener dirección del teclado
-      function getInputDirection() {
-        if (keys.ArrowUp || keys.w) return {x: 0, y: -1};
-        if (keys.ArrowDown || keys.s) return {x: 0, y: 1};
-        if (keys.ArrowLeft || keys.a) return {x: -1, y: 0};
-        if (keys.ArrowRight || keys.d) return {x: 1, y: 0};
-        return null;
-      }
-      
-      // Actualizar movimiento de Pacman con controles
+      // ACTUALIZACIÓN DE PACMAN CORREGIDA
       function updatePacmanMovement() {
-        // Verificar si está en una intersección para cambiar dirección
+        // Verificar si está en el centro de un tile para cambiar dirección
         const currentTileX = Math.floor(pac.px / TILE);
         const currentTileY = Math.floor(pac.py / TILE);
-        const isAtIntersection = (Math.abs(pac.px - (currentTileX * TILE + TILE_CENTER)) < 3 &&
-                                   Math.abs(pac.py - (currentTileY * TILE + TILE_CENTER)) < 3);
+        const centerX = currentTileX * TILE + TILE_CENTER;
+        const centerY = currentTileY * TILE + TILE_CENTER;
+        const isCentered = Math.abs(pac.px - centerX) < 2 && Math.abs(pac.py - centerY) < 2;
         
-        if (isAtIntersection) {
-          // Intentar aplicar la dirección solicitada por el teclado
-          const inputDir = getInputDirection();
-          if (inputDir) {
-            const newX = currentTileX + inputDir.x;
-            const newY = currentTileY + inputDir.y;
+        if (isCentered) {
+          // Intentar cambiar a la dirección deseada por el teclado
+          if (inputDirection.x !== 0 || inputDirection.y !== 0) {
+            const newX = currentTileX + inputDirection.x;
+            const newY = currentTileY + inputDirection.y;
             if (!isWall(newX, newY)) {
-              pac.dir = inputDir;
+              pac.dir = {x: inputDirection.x, y: inputDirection.y};
             }
           }
         }
         
-        // Mover Pacman en la dirección actual
+        // Mover en la dirección actual
         if (canMoveTo(pac.px, pac.py, pac.dir, pac.radius)) {
           pac.px += pac.dir.x * PAC_SPEED;
           pac.py += pac.dir.y * PAC_SPEED;
         }
         
-        // Actualizar tile de Pacman
+        // Actualizar tile
         const newTileX = Math.floor(pac.px / TILE);
         const newTileY = Math.floor(pac.py / TILE);
         if (!isWall(newTileX, newTileY)) {
@@ -558,7 +523,7 @@
           pac.y = newTileY;
         }
         
-        // Animar boca
+        // Animación de boca
         pac.mouth += 0.1;
         if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
       }
@@ -571,14 +536,15 @@
         pac.px = 1 * TILE + TILE_CENTER;
         pac.py = 1 * TILE + TILE_CENTER;
         pac.dir = {x: 1, y: 0};
-        pac.nextDir = {x: 1, y: 0};
+        pac.desiredDir = {x: 1, y: 0};
         pac.alive = true;
         pac.mouth = 0;
         
+        // Reiniciar fantasmas
         ghosts[0] = new Ghost(18, 1, '#ff5b5b', {x: -1, y: 0});
         ghosts[1] = new Ghost(18, 18, '#5bd6ff', {x: -1, y: 0});
-        ghosts[2] = new Ghost(16, 16, '#9b5bff', {x: -1, y: 0});
-        ghosts[3] = new Ghost(2, 18, '#ffb36b', {x: 1, y: 0});
+        ghosts[2] = new Ghost(2, 18, '#ffb36b', {x: 1, y: 0});
+        ghosts[3] = new Ghost(2, 1, '#9b5bff', {x: 1, y: 0});
         
         frightenedMode = false;
         frightenedTimer = 0;
@@ -606,7 +572,7 @@
         // Mover Pacman
         updatePacmanMovement();
         
-        // Comer puntos
+        // Comer puntos (verificar varias veces por frame)
         eatDotAt(pac.x, pac.y);
         eatPowerPelletAt(pac.x, pac.y);
         
@@ -760,27 +726,33 @@
         }
       }
       
-      // Eventos de teclado
-      window.addEventListener('keydown', (e) => {
+      // ========== CONTROLES DE TECLADO ==========
+      function handleKeyDown(e) {
         const key = e.key;
-        if (keys.hasOwnProperty(key)) {
-          keys[key] = true;
+        
+        // Direcciones
+        if (key === 'ArrowUp' || key === 'w') {
+          inputDirection = {x: 0, y: -1};
+          e.preventDefault();
+        } else if (key === 'ArrowDown' || key === 's') {
+          inputDirection = {x: 0, y: 1};
+          e.preventDefault();
+        } else if (key === 'ArrowLeft' || key === 'a') {
+          inputDirection = {x: -1, y: 0};
+          e.preventDefault();
+        } else if (key === 'ArrowRight' || key === 'd') {
+          inputDirection = {x: 1, y: 0};
           e.preventDefault();
         }
-        // Reiniciar con R
+        
+        // Reiniciar
         if (key === 'r' || key === 'R') {
           resetGame();
           e.preventDefault();
         }
-      });
+      }
       
-      window.addEventListener('keyup', (e) => {
-        const key = e.key;
-        if (keys.hasOwnProperty(key)) {
-          keys[key] = false;
-          e.preventDefault();
-        }
-      });
+      window.addEventListener('keydown', handleKeyDown);
       
       // Botón de reinicio
       document.getElementById('resetGameBtn').addEventListener('click', () => {
