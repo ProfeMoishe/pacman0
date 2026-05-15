@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PACMAN - Mapa Clásico Original</title>
+  <title>PACMAN - Mapas Clásicos Originales</title>
   <style>
     :root {
       --bg: #0b0b2b;
@@ -58,6 +58,17 @@
       color: #cfd7ffcc;
       margin-top: 8px;
       font-size: 0.9rem;
+    }
+
+    .level-display {
+      background: rgba(255, 212, 0, 0.1);
+      border: 1px solid rgba(255, 212, 0, 0.3);
+      border-radius: 20px;
+      padding: 6px 16px;
+      text-align: center;
+      font-size: 1rem;
+      margin-top: 10px;
+      display: inline-block;
     }
 
     .game-card {
@@ -163,6 +174,13 @@
       margin: 10px 0;
     }
 
+    .lives-display {
+      font-size: 1.2rem;
+      text-align: center;
+      margin: 10px 0;
+      color: #ffd400;
+    }
+
     footer {
       text-align: center;
       margin-top: 20px;
@@ -175,7 +193,10 @@
   <div class="game-container">
     <div class="game-header">
       <h1>PACMAN</h1>
-      <p>Mapa clásico original | JavaScript + Canvas</p>
+      <p>Mapas clásicos originales | 3 Niveles</p>
+      <div class="level-display">
+        Nivel: <span id="levelDisplay">1</span> / 3
+      </div>
     </div>
 
     <div class="game-card">
@@ -185,11 +206,11 @@
         <div class="game-info">
           <h3>🎮 Información</h3>
           <ul class="feature-list">
-            <li>Pacman se mueve</li>
-            <li>Esto es JavaScript y Canvas</li>
-            <li>VSe viene el cierre de notas</li>
-            <li>Fantasmas con prácticos sin presentar</li>
-            <li>Power Pellets incluidos</li>
+            <li>3 mapas clásicos originales</li>
+            <li>Efecto de titilado al ganar</li>
+            <li>Power Pellets en esquinas</li>
+            <li>Fantasmas con IA mejorada</li>
+            <li>Velocidad aumenta por nivel</li>
             <li>Modo asustado (fantasmas azules)</li>
           </ul>
           
@@ -197,12 +218,16 @@
             Score: <span id="scoreValue">0</span>
           </div>
           
+          <div class="lives-display">
+            ❤️ <span id="livesValue">3</span>
+          </div>
+          
           <div class="status-badge" id="gameStatus">
             🟡 EN EJECUCIÓN
           </div>
           
           <div class="game-controls">
-            <button id="resetGameBtn">🔄 Reiniciar</button>
+            <button id="resetGameBtn">🔄 Reiniciar Todo</button>
           </div>
           <div style="margin-top: 10px; font-size: 0.7rem; text-align: center;">
             ← ↑ ↓ → o WASD | R = Reiniciar
@@ -212,7 +237,7 @@
     </div>
     
     <footer>
-      <p>Mapa clásico del Pacman original | Los fantasmas salen de la casa central | Power pellets en las esquinas</p>
+      <p>Mapas clásicos originales de Pacman | 3 niveles progresivos | ¡Consigue 10,000 puntos para vida extra!</p>
     </footer>
   </div>
 
@@ -227,14 +252,14 @@
       const ROWS = 23;
       const TILE_CENTER = TILE / 2;
       
-      // Velocidades (reducidas para mejor control)
-      const PAC_SPEED = 1.2;
-      const GHOST_SPEED = 0.8;
-      const GHOST_FRIGHTENED_SPEED = 0.6;
+      // Velocidades base (aumentan con el nivel)
+      let PAC_SPEED = 1.2;
+      let GHOST_SPEED = 0.8;
+      let GHOST_FRIGHTENED_SPEED = 0.6;
       
-      // MAPA CLÁSICO DE PACMAN CORREGIDO
-      // 0 = punto, 1 = pared, 2 = power pellet, 3 = espacio vacío (sin punto)
-      const classicMap = [
+      // ========== MAPAS CLÁSICOS ORIGINALES ==========
+      // Mapa 1: El original de arcade
+      const map1 = [
         "111111111111111111111",
         "100000000000000000001",
         "101111011111111011101",
@@ -260,7 +285,67 @@
         "111111111111111111111"
       ];
       
-      let map = classicMap.map(row => row.split('').map(ch => parseInt(ch)));
+      // Mapa 2: Variación con más caminos
+      const map2 = [
+        "111111111111111111111",
+        "100000000000000000001",
+        "101111011101110111101",
+        "101000010001000100001",
+        "121011011011011011121",
+        "100000000000000000001",
+        "101101110111011101101",
+        "100001000001000100001",
+        "111101011111011101111",
+        "100000000000000000001",
+        "101110111011101110101",
+        "100000100000001000001",
+        "101101111101111101101",
+        "100001000001000100001",
+        "111011011011011011111",
+        "100000010000010000001",
+        "101101110111011101101",
+        "121000000000000000121",
+        "101111011111011111001",
+        "100000000000000000001",
+        "111111101111101111111",
+        "122222222222222222221",
+        "111111111111111111111"
+      ];
+      
+      // Mapa 3: El más difícil
+      const map3 = [
+        "111111111111111111111",
+        "100000000000000000001",
+        "101110111111011101101",
+        "101000100000100010001",
+        "121011101101110111121",
+        "100000001000000000001",
+        "111101110111011101111",
+        "100001000000000100001",
+        "101101111111111101101",
+        "100000000000000000001",
+        "101111011101110111101",
+        "100001000100010000001",
+        "111101110101011101111",
+        "100000000101000000001",
+        "101111011101110111101",
+        "100001000000000100001",
+        "101101111111111101101",
+        "121000000000000000121",
+        "101111011111011111001",
+        "100000000000000000001",
+        "111111101111101111111",
+        "122222222222222222221",
+        "111111111111111111111"
+      ];
+      
+      const maps = [map1, map2, map3];
+      let currentLevel = 0;
+      let map = [];
+      
+      function loadMap(levelIndex) {
+        map = maps[levelIndex].map(row => row.split('').map(ch => parseInt(ch)));
+      }
       
       function setupCanvas() {
         canvas.style.width = (TILE * COLS) + 'px';
@@ -276,7 +361,7 @@
         dots = [];
         powerPellets = [];
         
-        map = classicMap.map(row => row.split('').map(ch => parseInt(ch)));
+        loadMap(currentLevel);
         
         for (let y = 0; y < ROWS; y++) {
           dots[y] = [];
@@ -293,7 +378,7 @@
         }
       }
       
-      // ========== FUNCIONES DE COLISIÓN CORREGIDAS ==========
+      // ========== FUNCIONES DE COLISIÓN ==========
       function isWall(tileX, tileY) {
         if (tileX < 0 || tileX >= COLS || tileY < 0 || tileY >= ROWS) return true;
         return map[tileY][tileX] === 1 || map[tileY][tileX] === 3;
@@ -303,10 +388,6 @@
         const newPx = px + dirX;
         const newPy = py + dirY;
         
-        const tileX = Math.floor(newPx / TILE);
-        const tileY = Math.floor(newPy / TILE);
-        
-        // Verificar los bordes del círculo
         const checks = [
           {x: newPx - radius, y: newPy},
           {x: newPx + radius, y: newPy},
@@ -319,7 +400,6 @@
             return false;
           }
         }
-        
         return true;
       }
       
@@ -335,7 +415,7 @@
       
       let inputDirection = {x: 0, y: -1};
       
-      // ========== FANTASMA SIMPLIFICADO ==========
+      // ========== FANTASMA ==========
       class Ghost {
         constructor(x, y, color) {
           this.startX = x;
@@ -387,7 +467,6 @@
         update() {
           const speed = this.frightened ? GHOST_FRIGHTENED_SPEED : GHOST_SPEED;
           
-          // Verificar si está centrado en un tile
           const centerX = this.x * TILE + TILE_CENTER;
           const centerY = this.y * TILE + TILE_CENTER;
           const isCentered = Math.abs(this.px - centerX) < 1 && Math.abs(this.py - centerY) < 1;
@@ -396,7 +475,6 @@
             const validDirs = this.getValidDirections();
             
             if (validDirs.length > 0) {
-              // Evitar dar la vuelta
               const opposite = {x: -this.dir.x, y: -this.dir.y};
               let possibleDirs = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
               if (possibleDirs.length === 0) possibleDirs = validDirs;
@@ -404,7 +482,6 @@
               if (this.frightened) {
                 this.dir = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
               } else {
-                // Perseguir a Pacman
                 possibleDirs.sort((a, b) => {
                   const distA = Math.abs(this.x + a.x - pac.x) + Math.abs(this.y + a.y - pac.y);
                   const distB = Math.abs(this.x + b.x - pac.x) + Math.abs(this.y + b.y - pac.y);
@@ -415,7 +492,6 @@
             }
           }
           
-          // Moverse en la dirección actual si es posible
           const nextPx = this.px + this.dir.x * speed;
           const nextPy = this.py + this.dir.y * speed;
           
@@ -425,14 +501,13 @@
             this.x = Math.floor(this.px / TILE);
             this.y = Math.floor(this.py / TILE);
           } else {
-            // Si no puede moverse, alinear al centro del tile
             this.px = centerX;
             this.py = centerY;
           }
         }
       }
       
-      // FANTASMAS - Posiciones iniciales corregidas
+      // FANTASMAS
       const ghosts = [
         new Ghost(10, 9, '#ff5b5b'),   // Blinky
         new Ghost(9, 9, '#5bd6ff'),    // Inky
@@ -441,13 +516,22 @@
       ];
       
       let score = 0;
+      let lives = 3;
       let running = true;
+      let levelComplete = false;
       let frightenedMode = false;
       let frightenedTimer = 0;
       const FRIGHTENED_DURATION = 8000;
+      let extraLifeGiven = false;
+      
+      // Efecto de titilado
+      let flashTimer = 0;
+      let isFlashing = false;
       
       function updateScoreDisplay() {
         document.getElementById('scoreValue').textContent = score;
+        document.getElementById('livesValue').textContent = lives;
+        document.getElementById('levelDisplay').textContent = currentLevel + 1;
       }
       
       function activateFrightenedMode() {
@@ -463,6 +547,7 @@
           dots[tileY][tileX] = false;
           score += 10;
           updateScoreDisplay();
+          checkExtraLife();
           return true;
         }
         return false;
@@ -475,10 +560,23 @@
             score += 50;
             updateScoreDisplay();
             activateFrightenedMode();
+            checkExtraLife();
             return true;
           }
         }
         return false;
+      }
+      
+      function checkExtraLife() {
+        if (!extraLifeGiven && score >= 10000) {
+          lives++;
+          extraLifeGiven = true;
+          document.getElementById('gameStatus').innerHTML = '⭐ ¡VIDA EXTRA! ⭐';
+          setTimeout(() => {
+            if (running) document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
+          }, 2000);
+          updateScoreDisplay();
+        }
       }
       
       function updatePacmanMovement() {
@@ -489,7 +587,6 @@
         const isCentered = Math.abs(pac.px - centerX) < 1 && Math.abs(pac.py - centerY) < 1;
         
         if (isCentered) {
-          // Intentar cambiar de dirección si hay input
           if (inputDirection.x !== 0 || inputDirection.y !== 0) {
             const newX = currentTileX + inputDirection.x;
             const newY = currentTileY + inputDirection.y;
@@ -499,7 +596,6 @@
           }
         }
         
-        // Moverse en la dirección actual
         const nextPx = pac.px + pac.dir.x * PAC_SPEED;
         const nextPy = pac.py + pac.dir.y * PAC_SPEED;
         
@@ -518,31 +614,72 @@
         if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
       }
       
-      function resetGame() {
-        resetDotsAndPower();
-        
+      function resetPacmanPosition() {
         pac.x = 10; pac.y = 15;
         pac.px = 10 * TILE + TILE_CENTER;
         pac.py = 15 * TILE + TILE_CENTER;
         pac.dir = {x: 0, y: -1};
         pac.mouth = 0;
-        
+        inputDirection = {x: 0, y: -1};
+      }
+      
+      function resetGhosts() {
         ghosts[0] = new Ghost(10, 9, '#ff5b5b');
         ghosts[1] = new Ghost(9, 9, '#5bd6ff');
         ghosts[2] = new Ghost(11, 9, '#ffb36b');
         ghosts[3] = new Ghost(10, 10, '#ff69b4');
-        
         frightenedMode = false;
         frightenedTimer = 0;
-        score = 0;
+      }
+      
+      function nextLevel() {
+        currentLevel++;
+        if (currentLevel >= maps.length) {
+          // ¡Juego completado!
+          document.getElementById('gameStatus').innerHTML = '👑 ¡JUEGO COMPLETADO! 👑';
+          running = false;
+          levelComplete = false;
+          return;
+        }
+        
+        // Aumentar dificultad
+        PAC_SPEED = 1.2 + (currentLevel * 0.2);
+        GHOST_SPEED = 0.8 + (currentLevel * 0.15);
+        GHOST_FRIGHTENED_SPEED = 0.6 + (currentLevel * 0.1);
+        
+        resetDotsAndPower();
+        resetPacmanPosition();
+        resetGhosts();
+        extraLifeGiven = false;
+        levelComplete = false;
+        isFlashing = false;
         running = true;
-        inputDirection = {x: 0, y: -1};
-        updateScoreDisplay();
         document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
+        updateScoreDisplay();
+      }
+      
+      function loseLife() {
+        lives--;
+        updateScoreDisplay();
+        
+        if (lives <= 0) {
+          running = false;
+          levelComplete = false;
+          document.getElementById('gameStatus').innerHTML = '💀 GAME OVER 💀';
+          return;
+        }
+        
+        // Reiniciar posiciones pero mantener el progreso
+        resetPacmanPosition();
+        resetGhosts();
+        document.getElementById('gameStatus').innerHTML = '💔 ¡VIDA PERDIDA! 💔';
+        setTimeout(() => {
+          if (running) document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
+        }, 1500);
       }
       
       function update() {
-        if (!running) return;
+        if (!running || levelComplete) return;
         
         if (frightenedMode) {
           frightenedTimer -= 16;
@@ -562,7 +699,7 @@
           g.update();
         }
         
-        // Verificar victoria
+        // Verificar nivel completado
         let remainingDots = 0;
         for (let y = 0; y < ROWS; y++) {
           for (let x = 0; x < COLS; x++) {
@@ -572,12 +709,19 @@
         let remainingPower = powerPellets.filter(p => p.active).length;
         
         if (remainingDots === 0 && remainingPower === 0) {
-          running = false;
-          document.getElementById('gameStatus').innerHTML = '🏆 ¡GANASTE! 🏆';
+          levelComplete = true;
+          isFlashing = true;
+          flashTimer = 0;
+          document.getElementById('gameStatus').innerHTML = '🏆 ¡NIVEL COMPLETADO! 🏆';
+          
+          // Pasar al siguiente nivel después del titilado
+          setTimeout(() => {
+            nextLevel();
+          }, 3000);
           return;
         }
         
-        // Colisiones
+        // Colisiones con fantasmas
         for (const g of ghosts) {
           const dx = Math.abs(g.px - pac.px);
           const dy = Math.abs(g.py - pac.py);
@@ -588,16 +732,27 @@
               score += 200;
               updateScoreDisplay();
               g.respawn();
+              checkExtraLife();
             } else {
-              running = false;
-              document.getElementById('gameStatus').innerHTML = '💀 GAME OVER 💀';
-              return;
+              loseLife();
+              if (lives <= 0) return;
             }
           }
         }
       }
       
       function draw() {
+        // Efecto de titilado cuando se completa el nivel
+        if (isFlashing) {
+          flashTimer++;
+          const flashSpeed = Math.floor(flashTimer / 15) % 2;
+          if (flashSpeed === 0) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, TILE * COLS, TILE * ROWS);
+            return;
+          }
+        }
+        
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, TILE * COLS, TILE * ROWS);
         
@@ -605,53 +760,66 @@
         for (let y = 0; y < ROWS; y++) {
           for (let x = 0; x < COLS; x++) {
             if (map[y][x] === 1) {
-              ctx.fillStyle = '#2121ff';
+              // Efecto de color durante el titilado
+              if (isFlashing) {
+                const hue = (flashTimer * 5) % 360;
+                ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+              } else {
+                ctx.fillStyle = '#2121ff';
+              }
               ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
             }
           }
         }
         
         // Puntos normales
-        ctx.fillStyle = '#ffd35a';
-        for (let y = 0; y < ROWS; y++) {
-          for (let x = 0; x < COLS; x++) {
-            if (dots[y] && dots[y][x]) {
-              ctx.beginPath();
-              ctx.arc(x * TILE + TILE/2, y * TILE + TILE/2, 2, 0, Math.PI * 2);
-              ctx.fill();
+        if (!isFlashing) {
+          ctx.fillStyle = '#ffd35a';
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              if (dots[y] && dots[y][x]) {
+                ctx.beginPath();
+                ctx.arc(x * TILE + TILE/2, y * TILE + TILE/2, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
             }
           }
         }
         
         // Power Pellets
-        for (const pellet of powerPellets) {
-          if (pellet.active) {
-            ctx.fillStyle = '#ffaa44';
-            ctx.beginPath();
-            ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6, 0, Math.PI * 2);
-            ctx.fill();
+        if (!isFlashing) {
+          for (const pellet of powerPellets) {
+            if (pellet.active) {
+              const pulse = Math.sin(Date.now() * 0.005) * 1.5;
+              ctx.fillStyle = '#ffaa44';
+              ctx.beginPath();
+              ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6 + pulse, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         }
         
-        // Dibujar Pacman
-        const mouthOpen = 0.3 + Math.abs(Math.sin(pac.mouth)) * 0.3;
-        let angle = 0;
-        if (pac.dir.x === 1) angle = 0;
-        else if (pac.dir.x === -1) angle = Math.PI;
-        else if (pac.dir.y === -1) angle = -Math.PI/2;
-        else if (pac.dir.y === 1) angle = Math.PI/2;
-        
-        ctx.fillStyle = '#ffd400';
-        ctx.beginPath();
-        ctx.arc(pac.px, pac.py, pac.radius, angle + mouthOpen, angle + Math.PI * 2 - mouthOpen);
-        ctx.lineTo(pac.px, pac.py);
-        ctx.fill();
-        
-        // Ojo de Pacman
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(pac.px + (pac.dir.x * 3), pac.py + (pac.dir.y * 3) - 2, 2, 0, Math.PI * 2);
-        ctx.fill();
+        // Dibujar Pacman (solo si no está en modo game over)
+        if (running || levelComplete) {
+          const mouthOpen = 0.3 + Math.abs(Math.sin(pac.mouth)) * 0.3;
+          let angle = 0;
+          if (pac.dir.x === 1) angle = 0;
+          else if (pac.dir.x === -1) angle = Math.PI;
+          else if (pac.dir.y === -1) angle = -Math.PI/2;
+          else if (pac.dir.y === 1) angle = Math.PI/2;
+          
+          ctx.fillStyle = '#ffd400';
+          ctx.beginPath();
+          ctx.arc(pac.px, pac.py, pac.radius, angle + mouthOpen, angle + Math.PI * 2 - mouthOpen);
+          ctx.lineTo(pac.px, pac.py);
+          ctx.fill();
+          
+          // Ojo de Pacman
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.arc(pac.px + (pac.dir.x * 3), pac.py + (pac.dir.y * 3) - 2, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
         
         // Dibujar fantasmas
         for (const g of ghosts) {
@@ -668,7 +836,6 @@
           ctx.beginPath();
           ctx.arc(0, -2, g.radius, Math.PI, 0);
           ctx.lineTo(g.radius, g.radius);
-          // Ondas en la parte inferior
           for (let i = 0; i < 4; i++) {
             const waveX = g.radius - (i * g.radius/2);
             ctx.quadraticCurveTo(waveX - g.radius/4, g.radius + 2, waveX - g.radius/2, g.radius);
@@ -686,16 +853,48 @@
           ctx.fill();
           
           // Pupilas
-          ctx.fillStyle = '#00f';
-          ctx.beginPath();
-          ctx.arc(-2 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(3 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
-          ctx.fill();
+          if (g.frightened) {
+            // Ojos asustados
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-2, -2, 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(3, -2, 1, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = '#00f';
+            ctx.beginPath();
+            ctx.arc(-2 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(3 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
+            ctx.fill();
+          }
           
           ctx.restore();
         }
+      }
+      
+      function resetGame() {
+        currentLevel = 0;
+        PAC_SPEED = 1.2;
+        GHOST_SPEED = 0.8;
+        GHOST_FRIGHTENED_SPEED = 0.6;
+        score = 0;
+        lives = 3;
+        extraLifeGiven = false;
+        levelComplete = false;
+        isFlashing = false;
+        flashTimer = 0;
+        
+        resetDotsAndPower();
+        resetPacmanPosition();
+        resetGhosts();
+        
+        running = true;
+        document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
+        updateScoreDisplay();
       }
       
       // Controles
@@ -738,7 +937,6 @@
         const delta = Math.min(50, currentTime - lastTime);
         lastTime = currentTime;
         
-        // Actualizar múltiples veces si es necesario
         const steps = Math.floor(delta / 16);
         for (let i = 0; i < steps; i++) {
           update();
