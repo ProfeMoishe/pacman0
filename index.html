@@ -260,12 +260,8 @@
         "111111111111111111111"
       ];
       
-      // Convertir el mapa: 2 se convierte en punto grande (power pellet)
-      let map = classicMap.map(row => row.split('').map(ch => {
-        if (ch === '2') return 2; // Power pellet
-        if (ch === '3') return 3; // Puerta
-        return parseInt(ch);
-      }));
+      // Convertir el mapa a array de números
+      let map = classicMap.map(row => row.split('').map(ch => parseInt(ch)));
       
       function setupCanvas() {
         const DPR = window.devicePixelRatio || 1;
@@ -285,6 +281,9 @@
       function resetDotsAndPower() {
         dots = [];
         powerPellets = [];
+        
+        // Regenerar el mapa desde classicMap
+        map = classicMap.map(row => row.split('').map(ch => parseInt(ch)));
         
         for (let y = 0; y < ROWS; y++) {
           dots[y] = [];
@@ -313,8 +312,12 @@
       }
       
       function canMoveTo(px, py, dir, radius, isGhost = false) {
-        const newPx = px + dir.x;
-        const newPy = py + dir.y;
+        // CORRECCIÓN: dir es un vector de dirección, no un desplazamiento directo
+        const moveX = dir.x * (isGhost ? GHOST_SPEED : PAC_SPEED);
+        const moveY = dir.y * (isGhost ? GHOST_SPEED : PAC_SPEED);
+        
+        const newPx = px + moveX;
+        const newPy = py + moveY;
         
         const checkPoints = [
           {x: newPx, y: newPy},
@@ -455,7 +458,6 @@
       }
       
       // FANTASMAS EN EL CENTRO (casa de fantasmas)
-      // La casa está aproximadamente en las coordenadas x=9-11, y=10-12
       const ghosts = [
         new Ghost(10, 11, '#ff5b5b', {x: 1, y: 0}),   // Blinky - Rojo
         new Ghost(9, 11, '#5bd6ff', {x: -1, y: 0}),   // Inky - Azul
@@ -484,6 +486,7 @@
       function eatDotAt(tileX, tileY) {
         if (dots[tileY] && dots[tileY][tileX]) {
           dots[tileY][tileX] = false;
+          map[tileY][tileX] = 0; // Actualizar también el mapa
           score += 10;
           updateScoreDisplay();
           return true;
@@ -496,6 +499,7 @@
           const pellet = powerPellets[i];
           if (pellet.active && pellet.x === tileX && pellet.y === tileY) {
             pellet.active = false;
+            map[tileY][tileX] = 0; // Convertir a espacio vacío
             score += 50;
             updateScoreDisplay();
             activateFrightenedMode();
@@ -733,16 +737,16 @@
       function handleKeyDown(e) {
         const key = e.key;
         
-        if (key === 'ArrowUp' || key === 'w') {
+        if (key === 'ArrowUp' || key === 'w' || key === 'W') {
           inputDirection = {x: 0, y: -1};
           e.preventDefault();
-        } else if (key === 'ArrowDown' || key === 's') {
+        } else if (key === 'ArrowDown' || key === 's' || key === 'S') {
           inputDirection = {x: 0, y: 1};
           e.preventDefault();
-        } else if (key === 'ArrowLeft' || key === 'a') {
+        } else if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
           inputDirection = {x: -1, y: 0};
           e.preventDefault();
-        } else if (key === 'ArrowRight' || key === 'd') {
+        } else if (key === 'ArrowRight' || key === 'd' || key === 'D') {
           inputDirection = {x: 1, y: 0};
           e.preventDefault();
         }
