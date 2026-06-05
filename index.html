@@ -2,967 +2,874 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PACMAN - Mapas Clásicos Originales</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>PAC-MAN ARCADE CLÁSICO</title>
   <style>
-    :root {
-      --bg: #0b0b2b;
-      --wall: #2121ff;
-      --dot: #ffd35a;
-      --pac: #ffd400;
-      --ghost1: #ff5b5b;
-      --ghost2: #5bd6ff;
-      --ghost3: #ffb36b;
-      --ghost4: #ff69b4;
-      --text: #f0f0f8;
-    }
-
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+      user-select: none;
     }
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #0a0a2a 0%, #0f1630 50%, #1a1f3a 100%);
-      color: var(--text);
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       min-height: 100vh;
+      font-family: 'Courier New', 'VT323', 'Monaco', monospace;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* Contenedor estilo arcade */
+    .arcade-cabinet {
+      background: #000;
+      border-radius: 20px;
+      padding: 20px 25px 25px 25px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+      border: 2px solid #ffcc33;
+    }
+
+    .game-wrapper {
+      text-align: center;
+      background: #000000;
+      padding: 5px;
+    }
+
+    /* Panel superior estilo clásico: 1UP   HIGH   SCORE */
+    .score-panel {
+      background: #000;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: 'Courier New', 'VT323', monospace;
+      font-weight: bold;
+      letter-spacing: 2px;
+      border-bottom: 2px solid #ffcc33;
+      border-top: 2px solid #ffcc33;
+    }
+
+    .score-section {
+      text-align: center;
+      color: #ffd966;
+      text-shadow: 0 0 4px #ffaa33;
+      background: #010101;
+      padding: 5px 12px;
+      border-radius: 6px;
+    }
+
+    .score-label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ffcc44;
+      letter-spacing: 1px;
+    }
+
+    .score-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      background: #000;
+      padding: 0 6px;
+      color: #ffdd88;
+      font-family: monospace;
+      line-height: 1;
+    }
+
+    .lives-area {
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .game-container {
-      width: 100%;
-      max-width: 820px;
-    }
-
-    .game-header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .game-header h1 {
-      font-size: 2.8rem;
-      background: linear-gradient(135deg, #ffd400, #ffaa00);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 20px rgba(255, 212, 0, 0.3);
-      letter-spacing: 4px;
-    }
-
-    .game-header p {
-      color: #cfd7ffcc;
-      margin-top: 8px;
-      font-size: 0.9rem;
-    }
-
-    .level-display {
-      background: rgba(255, 212, 0, 0.1);
-      border: 1px solid rgba(255, 212, 0, 0.3);
-      border-radius: 20px;
+      gap: 12px;
+      background: #000000aa;
       padding: 6px 16px;
-      text-align: center;
-      font-size: 1rem;
-      margin-top: 10px;
-      display: inline-block;
-    }
-
-    .game-card {
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 20px;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
-
-    .game-area {
-      display: flex;
-      gap: 20px;
+      border-radius: 40px;
+      margin-top: 6px;
       justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
+    }
+
+    .lives-icons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pac-live {
+      font-size: 1.5rem;
+      filter: drop-shadow(0 0 2px gold);
     }
 
     canvas {
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 0 0 4px #ffcc33, 0 10px 25px rgba(0,0,0,0.5);
+      background: #000;
       image-rendering: crisp-edges;
       image-rendering: pixelated;
-      background: #000;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     }
 
-    .game-info {
-      min-width: 220px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 12px;
-      padding: 16px;
-      backdrop-filter: blur(5px);
-    }
-
-    .game-info h3 {
-      font-size: 1rem;
-      margin-bottom: 12px;
-      color: #ffd400;
-      border-left: 3px solid #ffd400;
-      padding-left: 10px;
-    }
-
-    .feature-list {
-      list-style: none;
-      margin-bottom: 20px;
-    }
-
-    .feature-list li {
-      margin: 10px 0;
-      font-size: 0.85rem;
+    .controls-info {
+      margin-top: 16px;
       display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .feature-list li::before {
-      content: "▶";
-      color: #ffd400;
-      font-size: 0.7rem;
-    }
-
-    .game-controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      color: #ffcc77;
+      font-size: 0.8rem;
+      font-family: monospace;
+      font-weight: bold;
     }
 
     button {
-      background: linear-gradient(135deg, #ffd400, #ffaa00);
+      background: #ffcc33;
       border: none;
-      color: #0b0b2b;
-      padding: 8px 16px;
-      border-radius: 8px;
+      color: #000;
+      font-family: monospace;
       font-weight: bold;
+      font-size: 1rem;
+      padding: 6px 18px;
+      border-radius: 30px;
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s ease;
-      font-family: inherit;
+      transition: 0.1s linear;
+      box-shadow: 0 2px 0 #aa7a22;
     }
 
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 212, 0, 0.3);
+    button:active {
+      transform: translateY(2px);
+      box-shadow: none;
     }
 
-    .status-badge {
-      background: rgba(255, 212, 0, 0.2);
-      border: 1px solid rgba(255, 212, 0, 0.3);
+    .reset-btn {
+      background: #ffaa33;
+      color: #1f1f1f;
+    }
+
+    .status-msg {
+      font-family: monospace;
+      font-size: 0.9rem;
+      background: #111;
+      padding: 4px 10px;
       border-radius: 20px;
-      padding: 6px 12px;
-      text-align: center;
-      font-size: 0.8rem;
-      margin-top: 15px;
-    }
-
-    .score-display {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ffd400;
-      text-align: center;
-      margin: 10px 0;
-    }
-
-    .lives-display {
-      font-size: 1.2rem;
-      text-align: center;
-      margin: 10px 0;
-      color: #ffd400;
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.75rem;
-      color: #cfd7ff99;
+      color: #ffcc66;
     }
   </style>
 </head>
 <body>
-  <div class="game-container">
-    <div class="game-header">
-      <h1>PACMAN</h1>
-      <p>Mapas clásicos originales | 3 Niveles</p>
-      <div class="level-display">
-        Nivel: <span id="levelDisplay">1</span> / 3
+<div class="arcade-cabinet">
+  <div class="game-wrapper">
+    <!-- Panel clásico: 1UP | HIGH | SCORE (igual a imagen) -->
+    <div class="score-panel">
+      <div class="score-section">
+        <div class="score-label">1UP</div>
+        <div class="score-value" id="oneUpScore">00</div>
+      </div>
+      <div class="score-section">
+        <div class="score-label">HIGH</div>
+        <div class="score-value" id="highScoreDisplay">00</div>
+      </div>
+      <div class="score-section">
+        <div class="score-label">SCORE</div>
+        <div class="score-value" id="currentScoreDisplay">00</div>
       </div>
     </div>
 
-    <div class="game-card">
-      <div class="game-area">
-        <canvas id="gameCanvas" width="448" height="496"></canvas>
-        
-        <div class="game-info">
-          <h3>🎮 Información</h3>
-          <ul class="feature-list">
-            <li>3 mapas clásicos originales</li>
-            <li>Efecto de titilado al ganar</li>
-            <li>Power Pellets en esquinas</li>
-            <li>Fantasmas con IA mejorada</li>
-            <li>Velocidad aumenta por nivel</li>
-            <li>Modo asustado (fantasmas azules)</li>
-          </ul>
-          
-          <div class="score-display">
-            Score: <span id="scoreValue">0</span>
-          </div>
-          
-          <div class="lives-display">
-            ❤️ <span id="livesValue">3</span>
-          </div>
-          
-          <div class="status-badge" id="gameStatus">
-            🟡 EN EJECUCIÓN
-          </div>
-          
-          <div class="game-controls">
-            <button id="resetGameBtn">🔄 Reiniciar Todo</button>
-          </div>
-          <div style="margin-top: 10px; font-size: 0.7rem; text-align: center;">
-            ← ↑ ↓ → o WASD | R = Reiniciar
-          </div>
-        </div>
-      </div>
+    <canvas id="gameCanvas" width="448" height="496"></canvas>
+
+    <div class="lives-area">
+      <span style="color:#ffcc66;">✧ LIVES ✧</span>
+      <div class="lives-icons" id="livesIconsContainer"></div>
+      <button id="resetGameBtn" class="reset-btn">🔄 RESET</button>
     </div>
-    
-    <footer>
-      <p>Mapas clásicos originales de Pacman | 3 niveles progresivos | ¡Consigue 10,000 puntos para vida extra!</p>
-    </footer>
+    <div class="controls-info">
+      <span>◀  ▲  ▼  ▶</span>  <span>o WASD</span>  <span>R = Reiniciar</span>
+    </div>
+    <div class="status-msg" id="gameStatusMsg"> READY! </div>
   </div>
+</div>
 
-  <script>
-    (() => {
-      // ========== CONFIGURACIÓN ==========
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      
-      const TILE = 16;
-      const COLS = 28; // Dimensiones Arcade Clásicas
-      const ROWS = 31; // Dimensiones Arcade Clásicas
-      const TILE_CENTER = TILE / 2;
-      
-      // Velocidades base (aumentan con el nivel)
-      let PAC_SPEED = 1.2;
-      let GHOST_SPEED = 0.8;
-      let GHOST_FRIGHTENED_SPEED = 0.6;
-      
-      // ========== MAPAS CLÁSICOS ORIGINALES (28x31) ==========
-      // Mapa 1: El original de arcade calco de la imagen adjunta
-      // 0 = Puntos, 1 = Pared, 2 = Power Pellet, 9 = Espacio vacío (corredor sin puntos)
-      const map1 = [
-        "1111111111111111111111111111",
-        "1000000000000110000000000001",
-        "1011110111110110111110111101",
-        "1211110111110110111110111121",
-        "1011110111110110111110111101",
-        "1000000000000000000000000001",
-        "1011110110111111110110111101",
-        "1011110110111111110110111101",
-        "1000000110000110000110000001",
-        "1111110111119119111110111111",
-        "9999910119999999999110199999",
-        "9999910119111991119110199999",
-        "1111110119199999919110111111",
-        "9999990999199999919990999999",
-        "1111110119199999919110111111",
-        "9999910119111111119110199999",
-        "9999910119999999999110199999",
-        "9999910119111111119110199999",
-        "1111110119111111119110111111",
-        "1000000000000110000000000001",
-        "1011110111110110111110111101",
-        "1011110111110110111110111101",
-        "1200110000000990000000110021",
-        "1110110110111111110110110111",
-        "1110110110111111110110110111",
-        "1000000110000110000110000001",
-        "1011111111110110111111111101",
-        "1011111111110110111111111101",
-        "1000000000000000000000000001",
-        "1111111111111111111111111111",
-        "9999999999999999999999999999"
-      ];
-      
-      // Mapa 2: Variación más cerrada usando la misma grilla 28x31
-      const map2 = [
-        "1111111111111111111111111111",
-        "1000000000000110000000000001",
-        "1011110111110110111110111101",
-        "1211110111110110111110111121",
-        "1000000111110110111110000001",
-        "1111110000000000000000111111",
-        "1011110110111111110110111101",
-        "1011110110111111110110111101",
-        "1000000110000110000110000001",
-        "1111110111119119111110111111",
-        "9999910119999999999110199999",
-        "9999910119111991119110199999",
-        "1111110119199999919110111111",
-        "9999990999199999919990999999",
-        "1111110119199999919110111111",
-        "9999910119111111119110199999",
-        "9999910119999999999110199999",
-        "9999910119111111119110199999",
-        "1111110119111111119110111111",
-        "1000000000000110000000000001",
-        "1011110111110110111110111101",
-        "1000010111110110111110100001",
-        "1211010000000990000000101121",
-        "1011010110111111110110101101",
-        "1011010110111111110110101101",
-        "1000000110000110000110000001",
-        "1011111111110110111111111101",
-        "1011111111110110111111111101",
-        "1000000000000000000000000001",
-        "1111111111111111111111111111",
-        "9999999999999999999999999999"
-      ];
-      
-      // Mapa 3: Laberinto avanzado 28x31
-      const map3 = [
-        "1111111111111111111111111111",
-        "1000000000000000000000000001",
-        "1011110111111111111110111101",
-        "1211110000000110000000111121",
-        "1011111111110110111111111101",
-        "1000000000000000000000000001",
-        "1111110110111111110110111111",
-        "1111110110111111110110111111",
-        "1000000110000110000110000001",
-        "1111110111119119111110111111",
-        "9999910119999999999110199999",
-        "9999910119111991119110199999",
-        "1111110119199999919110111111",
-        "9999990999199999919990999999",
-        "1111110119199999919110111111",
-        "9999910119111111119110199999",
-        "9999910119999999999110199999",
-        "9999910119111111119110199999",
-        "1111110119111111119110111111",
-        "1000000000000110000000000001",
-        "1011110111110110111110111101",
-        "1000000000000110000000000001",
-        "1211111111110990111111111121",
-        "1000000110000000000011000001",
-        "1111110110111111110110111111",
-        "1000000110000110000110000001",
-        "1011111111110110111111111101",
-        "1011111111110110111111111101",
-        "1000000000000000000000000001",
-        "1111111111111111111111111111",
-        "9999999999999999999999999999"
-      ];
-      
-      const maps = [map1, map2, map3];
-      let currentLevel = 0;
-      let map = [];
-      
-      function loadMap(levelIndex) {
-        map = maps[levelIndex].map(row => row.split('').map(ch => parseInt(ch)));
+<script>
+  (function(){
+    // -------------------- CONFIGURACIÓN ARCADE CLÁSICA --------------------
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const TILE = 16;
+    const COLS = 28;
+    const ROWS = 31;
+
+    // Velocidades base (se incrementan por nivel)
+    let PAC_SPEED = 1.28;
+    let GHOST_SPEED = 0.82;
+    let GHOST_FRIGHTENED_SPEED = 0.6;
+
+    // ----- MAPA CLÁSICO ORIGINAL (IDENTICO AL ESCENARIO DE LA IMAGEN) -----
+    // Representación fiel del laberinto de Pac-Man Arcade (con túneles, power-pellets en esquinas)
+    // 0 = punto, 1 = pared, 2 = power pellet, 9 = pasillo vacío (sin puntos)
+    const CLASSIC_MAZE_RAW = [
+      "1111111111111111111111111111",
+      "1000000000000110000000000001",
+      "1011110111110110111110111101",
+      "1211110111110110111110111121",
+      "1011110111110110111110111101",
+      "1000000000000000000000000001",
+      "1011110110111111110110111101",
+      "1011110110111111110110111101",
+      "1000000110000110000110000001",
+      "1111110111119119111110111111",
+      "9999910119999999999110199999",
+      "9999910119111991119110199999",
+      "1111110119199999919110111111",
+      "9999990999199999919990999999",
+      "1111110119199999919110111111",
+      "9999910119111111119110199999",
+      "9999910119999999999110199999",
+      "9999910119111111119110199999",
+      "1111110119111111119110111111",
+      "1000000000000110000000000001",
+      "1011110111110110111110111101",
+      "1011110111110110111110111101",
+      "1200110000000990000000110021",
+      "1110110110111111110110110111",
+      "1110110110111111110110110111",
+      "1000000110000110000110000001",
+      "1011111111110110111111111101",
+      "1011111111110110111111111101",
+      "1000000000000000000000000001",
+      "1111111111111111111111111111",
+      "9999999999999999999999999999"
+    ];
+
+    // Convertir el mapa estático a matriz numérica
+    let baseMazeMatrix = [];
+    for (let i = 0; i < ROWS; i++) {
+      baseMazeMatrix.push(CLASSIC_MAZE_RAW[i].split('').map(ch => parseInt(ch)));
+    }
+
+    // Mapas: todos los niveles usan el mismo escenario idéntico a la imagen
+    // Solo cambia el color de las paredes entre niveles
+    const maps = [baseMazeMatrix, baseMazeMatrix, baseMazeMatrix];
+    let currentLevel = 0;
+    let currentMap = [];
+
+    // Colores de paredes que cambian por nivel (entre niveles cambia)
+    const WALL_COLORS = [
+      '#2121ff',   // Nivel 1: Azul clásico
+      '#30b830',   // Nivel 2: Verde brillante
+      '#d43d6b',   // Nivel 3: Rosa carmesí
+      '#ffaa33',   // Nivel 4 (por si hay más): dorado (pero solo 3 niveles)
+    ];
+
+    // Variables globales del juego
+    let dots = [];          // matriz de booleanos (puntos)
+    let powerPellets = [];  // lista de {x, y, active}
+    let score = 0;
+    let highScore = 0;
+    let lives = 3;
+    let running = true;
+    let levelComplete = false;
+    let readyMode = true;       // Modo "READY!" (pausa inicial / entre muertes)
+    let readyTimer = 0;
+    const READY_DURATION = 2000; // 2 segundos
+
+    let frightenedMode = false;
+    let frightenedTimer = 0;
+    const FRIGHTENED_DURATION = 7000;
+
+    let extraLifeGiven = false;
+    let flashWin = false;
+    let flashCounter = 0;
+    
+    // Datos Pac-Man
+    const PAC_START_X = 13;
+    const PAC_START_Y = 22;
+    const pac = {
+      x: PAC_START_X, y: PAC_START_Y,
+      px: PAC_START_X * TILE + TILE/2,
+      py: PAC_START_Y * TILE + TILE/2,
+      dir: {x:0, y:-1},
+      mouth: 0,
+      radius: 6
+    };
+    let inputDir = {x:0, y:-1};
+
+    // ----- Fantasmas con posiciones clásicas -----
+    class Ghost {
+      constructor(startX, startY, colorName) {
+        this.startX = startX;
+        this.startY = startY;
+        this.x = startX;
+        this.y = startY;
+        this.px = startX * TILE + TILE/2;
+        this.py = startY * TILE + TILE/2;
+        this.dir = {x: 1, y: 0};
+        this.originalColor = colorName;
+        this.color = colorName;
+        this.radius = 6;
+        this.frightened = false;
       }
-      
-      function setupCanvas() {
-        canvas.style.width = (TILE * COLS) + 'px';
-        canvas.style.height = (TILE * ROWS) + 'px';
+
+      getValidDirections() {
+        const valid = [];
+        const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+        for(const d of dirs) {
+          const nx = this.x + d.x;
+          const ny = this.y + d.y;
+          if(!isWallTile(nx, ny)) valid.push(d);
+        }
+        return valid;
       }
-      setupCanvas();
-      
-      // Power Pellets y Dots
-      let powerPellets = [];
-      let dots = [];
-      
-      function resetDotsAndPower() {
-        dots = [];
-        powerPellets = [];
-        
-        loadMap(currentLevel);
-        
-        for (let y = 0; y < ROWS; y++) {
-          dots[y] = [];
-          for (let x = 0; x < COLS; x++) {
-            if (map[y][x] === 0) {
-              dots[y][x] = true;
-            } else if (map[y][x] === 2) {
-              dots[y][x] = false;
-              powerPellets.push({x: x, y: y, active: true});
+
+      setFrightened(enabled) {
+        this.frightened = enabled;
+        this.color = enabled ? '#9b9bff' : this.originalColor;
+      }
+
+      respawn() {
+        this.x = this.startX;
+        this.y = this.startY;
+        this.px = this.x * TILE + TILE/2;
+        this.py = this.y * TILE + TILE/2;
+        this.dir = {x: 1, y: 0};
+        this.setFrightened(false);
+      }
+
+      update() {
+        const speed = this.frightened ? GHOST_FRIGHTENED_SPEED : GHOST_SPEED;
+        const centerX = this.x * TILE + TILE/2;
+        const centerY = this.y * TILE + TILE/2;
+        const isCentered = Math.abs(this.px - centerX) < 1.5 && Math.abs(this.py - centerY) < 1.5;
+
+        if(isCentered) {
+          const validDirs = this.getValidDirections();
+          if(validDirs.length > 0) {
+            const opposite = {x: -this.dir.x, y: -this.dir.y};
+            let possible = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
+            if(possible.length === 0) possible = validDirs;
+            if(this.frightened) {
+              this.dir = possible[Math.floor(Math.random() * possible.length)];
             } else {
-              dots[y][x] = false;
+              // IA clásica: aproximación hacia Pac-Man
+              possible.sort((a,b) => {
+                const da = Math.abs((this.x + a.x) - pac.x) + Math.abs((this.y + a.y) - pac.y);
+                const db = Math.abs((this.x + b.x) - pac.x) + Math.abs((this.y + b.y) - pac.y);
+                return da - db;
+              });
+              this.dir = possible[0];
             }
           }
         }
+
+        const newPx = this.px + this.dir.x * speed;
+        const newPy = this.py + this.dir.y * speed;
+        if(canMoveToPos(this.px, this.py, this.dir.x * speed, this.dir.y * speed, this.radius)) {
+          this.px = newPx;
+          this.py = newPy;
+          this.x = Math.floor(this.px / TILE);
+          this.y = Math.floor(this.py / TILE);
+        } else {
+          this.px = centerX;
+          this.py = centerY;
+        }
+
+        // TUNEL WRAP (clásico fila 17)
+        if(this.y === 17) {
+          if(this.x < 0) { this.x = COLS-1; this.px = this.x * TILE + TILE/2; }
+          else if(this.x >= COLS) { this.x = 0; this.px = this.x * TILE + TILE/2; }
+        }
       }
-      
-      // ========== FUNCIONES DE COLISIÓN ==========
-      function isWall(tileX, tileY) {
-        if (tileX < 0 || tileX >= COLS || tileY < 0 || tileY >= ROWS) return true;
-        return map[tileY][tileX] === 1 || map[tileY][tileX] === 3;
+    }
+
+    let ghosts = [];
+
+    // Funciones auxiliares mapa
+    function isWallTile(tx, ty) {
+      if(tx<0 || tx>=COLS || ty<0 || ty>=ROWS) return true;
+      const val = currentMap[ty][tx];
+      return val === 1 || val === 3;
+    }
+
+    function canMoveToPos(px, py, dx, dy, rad) {
+      const newX = px + dx;
+      const newY = py + dy;
+      const corners = [
+        {x: newX - rad, y: newY},
+        {x: newX + rad, y: newY},
+        {x: newX, y: newY - rad},
+        {x: newX, y: newY + rad}
+      ];
+      for(const c of corners) {
+        const tileX = Math.floor(c.x / TILE);
+        const tileY = Math.floor(c.y / TILE);
+        if(isWallTile(tileX, tileY)) return false;
       }
-      
-      function canMoveTo(px, py, dirX, dirY, radius) {
-        const newPx = px + dirX;
-        const newPy = py + dirY;
-        
-        const checks = [
-          {x: newPx - radius, y: newPy},
-          {x: newPx + radius, y: newPy},
-          {x: newPx, y: newPy - radius},
-          {x: newPx, y: newPy + radius}
-        ];
-        
-        for (const check of checks) {
-          if (isWall(Math.floor(check.x / TILE), Math.floor(check.y / TILE))) {
-            return false;
-          }
-        }
-        return true;
-      }
-      
-      // ========== PACMAN ==========
-      const pac = {
-        x: 13, y: 22,
-        px: 13 * TILE + TILE_CENTER,
-        py: 22 * TILE + TILE_CENTER,
-        dir: {x: 0, y: -1},
-        mouth: 0,
-        radius: 6
-      };
-      
-      let inputDirection = {x: 0, y: -1};
-      
-      // ========== FANTASMA ==========
-      class Ghost {
-        constructor(x, y, color) {
-          this.startX = x;
-          this.startY = y;
-          this.x = x;
-          this.y = y;
-          this.px = x * TILE + TILE_CENTER;
-          this.py = y * TILE + TILE_CENTER;
-          this.dir = {x: 1, y: 0};
-          this.originalColor = color;
-          this.color = color;
-          this.radius = 6;
-          this.frightened = false;
-        }
-        
-        getValidDirections() {
-          const valid = [];
-          const dirs = [
-            {x: 1, y: 0},
-            {x: -1, y: 0},
-            {x: 0, y: 1},
-            {x: 0, y: -1}
-          ];
-          
-          for (const d of dirs) {
-            const newX = this.x + d.x;
-            const newY = this.y + d.y;
-            if (!isWall(newX, newY)) {
-              valid.push(d);
-            }
-          }
-          return valid;
-        }
-        
-        setFrightened(enabled) {
-          this.frightened = enabled;
-          this.color = enabled ? '#6b6bff' : this.originalColor;
-        }
-        
-        respawn() {
-          this.x = this.startX;
-          this.y = this.startY;
-          this.px = this.x * TILE + TILE_CENTER;
-          this.py = this.y * TILE + TILE_CENTER;
-          this.dir = {x: 1, y: 0};
-          this.setFrightened(false);
-        }
-        
-        update() {
-          const speed = this.frightened ? GHOST_FRIGHTENED_SPEED : GHOST_SPEED;
-          
-          const centerX = this.x * TILE + TILE_CENTER;
-          const centerY = this.y * TILE + TILE_CENTER;
-          const isCentered = Math.abs(this.px - centerX) < 1 && Math.abs(this.py - centerY) < 1;
-          
-          if (isCentered) {
-            const validDirs = this.getValidDirections();
-            
-            if (validDirs.length > 0) {
-              const opposite = {x: -this.dir.x, y: -this.dir.y};
-              let possibleDirs = validDirs.filter(d => !(d.x === opposite.x && d.y === opposite.y));
-              if (possibleDirs.length === 0) possibleDirs = validDirs;
-              
-              if (this.frightened) {
-                this.dir = possibleDirs[Math.floor(Math.random() * possibleDirs.length)];
-              } else {
-                possibleDirs.sort((a, b) => {
-                  const distA = Math.abs(this.x + a.x - pac.x) + Math.abs(this.y + a.y - pac.y);
-                  const distB = Math.abs(this.x + b.x - pac.x) + Math.abs(this.y + b.y - pac.y);
-                  return distA - distB;
-                });
-                this.dir = possibleDirs[0];
-              }
-            }
-          }
-          
-          const nextPx = this.px + this.dir.x * speed;
-          const nextPy = this.py + this.dir.y * speed;
-          
-          if (canMoveTo(this.px, this.py, this.dir.x * speed, this.dir.y * speed, this.radius)) {
-            this.px = nextPx;
-            this.py = nextPy;
-            this.x = Math.floor(this.px / TILE);
-            this.y = Math.floor(this.py / TILE);
+      return true;
+    }
+
+    // Inicializar / resetear puntos y power pellets según el mapa actual
+    function initDotsAndPower() {
+      dots = Array(ROWS).fill().map(() => Array(COLS).fill(false));
+      powerPellets = [];
+      for(let y=0; y<ROWS; y++) {
+        for(let x=0; x<COLS; x++) {
+          const cell = currentMap[y][x];
+          if(cell === 0) {
+            dots[y][x] = true;
+          } else if(cell === 2) {
+            dots[y][x] = false;
+            powerPellets.push({x, y, active: true});
           } else {
-            this.px = centerX;
-            this.py = centerY;
+            dots[y][x] = false;
           }
         }
       }
-      
-      // FANTASMAS (Actualizados a la caja original)
-      const ghosts = [
+    }
+
+    // Cargar nivel (mismo mapa pero diferente color de pared)
+    function loadLevel(levelIndex) {
+      currentMap = maps[levelIndex % maps.length];
+      initDotsAndPower();
+    }
+
+    // Reiniciar posiciones de personajes
+    function resetPositions() {
+      pac.x = PAC_START_X; pac.y = PAC_START_Y;
+      pac.px = PAC_START_X * TILE + TILE/2;
+      pac.py = PAC_START_Y * TILE + TILE/2;
+      pac.dir = {x:0, y:-1};
+      inputDir = {x:0, y:-1};
+      pac.mouth = 0;
+
+      ghosts = [
         new Ghost(13, 11, '#ff5b5b'),  // Blinky
         new Ghost(12, 14, '#5bd6ff'),  // Inky
         new Ghost(15, 14, '#ffb36b'),  // Clyde
         new Ghost(13, 14, '#ff69b4')   // Pinky
       ];
-      
-      let score = 0;
-      let lives = 3;
-      let running = true;
-      let levelComplete = false;
-      let frightenedMode = false;
-      let frightenedTimer = 0;
-      const FRIGHTENED_DURATION = 8000;
-      let extraLifeGiven = false;
-      
-      // Efecto de titilado
-      let flashTimer = 0;
-      let isFlashing = false;
-      
-      function updateScoreDisplay() {
-        document.getElementById('scoreValue').textContent = score;
-        document.getElementById('livesValue').textContent = lives;
-        document.getElementById('levelDisplay').textContent = currentLevel + 1;
+      frightenedMode = false;
+      frightenedTimer = 0;
+      for(let g of ghosts) g.setFrightened(false);
+    }
+
+    // Estado READY! (pausa antes de empezar nivel o tras muerte)
+    function startReadyState() {
+      readyMode = true;
+      readyTimer = READY_DURATION;
+      document.getElementById('gameStatusMsg').innerHTML = " READY! ";
+    }
+
+    // Actualizar UI: score, highscore, 1UP, vidas
+    function updateUI() {
+      const oneUpElem = document.getElementById('oneUpScore');
+      const highElem = document.getElementById('highScoreDisplay');
+      const currentScoreElem = document.getElementById('currentScoreDisplay');
+      const scoreStr = String(Math.floor(score)).padStart(2,'0').slice(0,8);
+      oneUpElem.innerText = scoreStr;
+      currentScoreElem.innerText = scoreStr;
+      if(score > highScore) {
+        highScore = score;
+        highElem.innerText = String(highScore).padStart(2,'0').slice(0,8);
+      } else {
+        highElem.innerText = String(highScore).padStart(2,'0').slice(0,8);
       }
-      
-      function activateFrightenedMode() {
-        frightenedMode = true;
-        frightenedTimer = FRIGHTENED_DURATION;
-        for (const g of ghosts) {
-          g.setFrightened(true);
-        }
+      // mostrar vidas como iconos de pacman
+      const livesContainer = document.getElementById('livesIconsContainer');
+      livesContainer.innerHTML = '';
+      for(let i=0; i<lives; i++) {
+        const span = document.createElement('span');
+        span.className = 'pac-live';
+        span.innerHTML = 'ᗧ';
+        span.style.color = '#ffd966';
+        span.style.fontSize = '24px';
+        span.style.marginRight = '5px';
+        livesContainer.appendChild(span);
       }
-      
-      function eatDotAt(tileX, tileY) {
-        if (dots[tileY] && dots[tileY][tileX]) {
-          dots[tileY][tileX] = false;
-          score += 10;
-          updateScoreDisplay();
+    }
+
+    // Comprobar vida extra (10000 puntos)
+    function checkExtraLife() {
+      if(!extraLifeGiven && score >= 10000) {
+        lives++;
+        extraLifeGiven = true;
+        updateUI();
+        document.getElementById('gameStatusMsg').innerHTML = "⭐ EXTRA LIFE ⭐";
+        setTimeout(() => { if(running && !readyMode) document.getElementById('gameStatusMsg').innerHTML = "▶ GAME"; }, 1500);
+      }
+    }
+
+    function eatDot(tileX, tileY) {
+      if(dots[tileY] && dots[tileY][tileX]) {
+        dots[tileY][tileX] = false;
+        score += 10;
+        updateUI();
+        checkExtraLife();
+        return true;
+      }
+      return false;
+    }
+
+    function eatPowerPellet(tileX, tileY) {
+      for(let p of powerPellets) {
+        if(p.active && p.x === tileX && p.y === tileY) {
+          p.active = false;
+          score += 50;
+          updateUI();
+          activateFrightenedMode();
           checkExtraLife();
           return true;
         }
-        return false;
       }
-      
-      function eatPowerPelletAt(tileX, tileY) {
-        for (const pellet of powerPellets) {
-          if (pellet.active && pellet.x === tileX && pellet.y === tileY) {
-            pellet.active = false;
-            score += 50;
-            updateScoreDisplay();
-            activateFrightenedMode();
-            checkExtraLife();
-            return true;
+      return false;
+    }
+
+    function activateFrightenedMode() {
+      frightenedMode = true;
+      frightenedTimer = FRIGHTENED_DURATION;
+      for(let g of ghosts) g.setFrightened(true);
+    }
+
+    // Lógica de movimiento Pac-Man
+    function updatePacman() {
+      const curTileX = Math.floor(pac.px / TILE);
+      const curTileY = Math.floor(pac.py / TILE);
+      const centerX = curTileX * TILE + TILE/2;
+      const centerY = curTileY * TILE + TILE/2;
+      const centered = Math.abs(pac.px - centerX) < 1.2 && Math.abs(pac.py - centerY) < 1.2;
+
+      if(centered) {
+        if(inputDir.x !==0 || inputDir.y !==0) {
+          const newX = curTileX + inputDir.x;
+          const newY = curTileY + inputDir.y;
+          if(!isWallTile(newX, newY)) {
+            pac.dir = {x: inputDir.x, y: inputDir.y};
           }
         }
-        return false;
       }
-      
-      function checkExtraLife() {
-        if (!extraLifeGiven && score >= 10000) {
-          lives++;
-          extraLifeGiven = true;
-          document.getElementById('gameStatus').innerHTML = '⭐ ¡VIDA EXTRA! ⭐';
-          setTimeout(() => {
-            if (running) document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
-          }, 2000);
-          updateScoreDisplay();
+
+      const newPx = pac.px + pac.dir.x * PAC_SPEED;
+      const newPy = pac.py + pac.dir.y * PAC_SPEED;
+      if(canMoveToPos(pac.px, pac.py, pac.dir.x * PAC_SPEED, pac.dir.y * PAC_SPEED, pac.radius)) {
+        pac.px = newPx;
+        pac.py = newPy;
+      } else {
+        pac.px = centerX;
+        pac.py = centerY;
+      }
+
+      pac.x = Math.floor(pac.px / TILE);
+      pac.y = Math.floor(pac.py / TILE);
+      pac.mouth += 0.13;
+
+      // Túnel lateral (fila 17)
+      if(pac.y === 17) {
+        if(pac.x < 0) { pac.x = COLS-1; pac.px = pac.x * TILE + TILE/2; }
+        else if(pac.x >= COLS) { pac.x = 0; pac.px = pac.x * TILE + TILE/2; }
+      }
+    }
+
+    // Revisar fin del nivel (sin puntos ni power pellets)
+    function checkLevelCompletion() {
+      let remainingDots = 0;
+      for(let i=0;i<ROWS;i++) {
+        for(let j=0;j<COLS;j++) {
+          if(dots[i][j]) remainingDots++;
         }
       }
-      
-      function updatePacmanMovement() {
-        const currentTileX = Math.floor(pac.px / TILE);
-        const currentTileY = Math.floor(pac.py / TILE);
-        const centerX = currentTileX * TILE + TILE_CENTER;
-        const centerY = currentTileY * TILE + TILE_CENTER;
-        const isCentered = Math.abs(pac.px - centerX) < 1 && Math.abs(pac.py - centerY) < 1;
-        
-        if (isCentered) {
-          if (inputDirection.x !== 0 || inputDirection.y !== 0) {
-            const newX = currentTileX + inputDirection.x;
-            const newY = currentTileY + inputDirection.y;
-            if (!isWall(newX, newY)) {
-              pac.dir = {x: inputDirection.x, y: inputDirection.y};
-            }
-          }
-        }
-        
-        const nextPx = pac.px + pac.dir.x * PAC_SPEED;
-        const nextPy = pac.py + pac.dir.y * PAC_SPEED;
-        
-        if (canMoveTo(pac.px, pac.py, pac.dir.x * PAC_SPEED, pac.dir.y * PAC_SPEED, pac.radius)) {
-          pac.px = nextPx;
-          pac.py = nextPy;
-        } else {
-          pac.px = centerX;
-          pac.py = centerY;
-        }
-        
-        pac.x = Math.floor(pac.px / TILE);
-        pac.y = Math.floor(pac.py / TILE);
-        
-        pac.mouth += 0.1;
-        if (pac.mouth > Math.PI * 2) pac.mouth -= Math.PI * 2;
-      }
-      
-      function resetPacmanPosition() {
-        pac.x = 13; pac.y = 22;
-        pac.px = 13 * TILE + TILE_CENTER;
-        pac.py = 22 * TILE + TILE_CENTER;
-        pac.dir = {x: 0, y: -1};
-        pac.mouth = 0;
-        inputDirection = {x: 0, y: -1};
-      }
-      
-      function resetGhosts() {
-        ghosts[0] = new Ghost(13, 11, '#ff5b5b');
-        ghosts[1] = new Ghost(12, 14, '#5bd6ff');
-        ghosts[2] = new Ghost(15, 14, '#ffb36b');
-        ghosts[3] = new Ghost(13, 14, '#ff69b4');
-        frightenedMode = false;
-        frightenedTimer = 0;
-      }
-      
-      function nextLevel() {
-        currentLevel++;
-        if (currentLevel >= maps.length) {
-          document.getElementById('gameStatus').innerHTML = '👑 ¡JUEGO COMPLETADO! 👑';
-          running = false;
-          levelComplete = false;
-          return;
-        }
-        
-        // Aumentar dificultad
-        PAC_SPEED = 1.2 + (currentLevel * 0.2);
-        GHOST_SPEED = 0.8 + (currentLevel * 0.15);
-        GHOST_FRIGHTENED_SPEED = 0.6 + (currentLevel * 0.1);
-        
-        resetDotsAndPower();
-        resetPacmanPosition();
-        resetGhosts();
-        extraLifeGiven = false;
-        levelComplete = false;
-        isFlashing = false;
-        running = true;
-        document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
-        updateScoreDisplay();
-      }
-      
-      function loseLife() {
-        lives--;
-        updateScoreDisplay();
-        
-        if (lives <= 0) {
-          running = false;
-          levelComplete = false;
-          document.getElementById('gameStatus').innerHTML = '💀 GAME OVER 💀';
-          return;
-        }
-        
-        resetPacmanPosition();
-        resetGhosts();
-        document.getElementById('gameStatus').innerHTML = '💔 ¡VIDA PERDIDA! 💔';
-        setTimeout(() => {
-          if (running) document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
-        }, 1500);
-      }
-      
-      function update() {
-        if (!running || levelComplete) return;
-        
-        if (frightenedMode) {
-          frightenedTimer -= 16;
-          if (frightenedTimer <= 0) {
-            frightenedMode = false;
-            for (const g of ghosts) {
-              g.setFrightened(false);
-            }
-          }
-        }
-        
-        updatePacmanMovement();
-        eatDotAt(pac.x, pac.y);
-        eatPowerPelletAt(pac.x, pac.y);
-        
-        for (const g of ghosts) {
-          g.update();
-        }
-        
-        // Verificar nivel completado
-        let remainingDots = 0;
-        for (let y = 0; y < ROWS; y++) {
-          for (let x = 0; x < COLS; x++) {
-            if (dots[y] && dots[y][x]) remainingDots++;
-          }
-        }
-        let remainingPower = powerPellets.filter(p => p.active).length;
-        
-        if (remainingDots === 0 && remainingPower === 0) {
+      let remainingPower = powerPellets.filter(p=>p.active).length;
+      if(remainingDots === 0 && remainingPower === 0) {
+        if(!levelComplete) {
           levelComplete = true;
-          isFlashing = true;
-          flashTimer = 0;
-          document.getElementById('gameStatus').innerHTML = '🏆 ¡NIVEL COMPLETADO! 🏆';
-          
+          flashWin = true;
+          flashCounter = 0;
+          running = false;
+          document.getElementById('gameStatusMsg').innerHTML = "🏆 LEVEL CLEAR! 🏆";
           setTimeout(() => {
             nextLevel();
-          }, 3000);
-          return;
+          }, 2200);
         }
-        
-        // Colisiones con fantasmas
-        for (const g of ghosts) {
-          const dx = Math.abs(g.px - pac.px);
-          const dy = Math.abs(g.py - pac.py);
-          const distance = Math.hypot(dx, dy);
-          
-          if (distance < (pac.radius + g.radius - 2)) {
-            if (g.frightened) {
-              score += 200;
-              updateScoreDisplay();
-              g.respawn();
-              checkExtraLife();
-            } else {
-              loseLife();
-              if (lives <= 0) return;
-            }
-          }
+        return true;
+      }
+      return false;
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      if(currentLevel >= maps.length) {
+        // Si supera 3 niveles, se recicla pero con dificultad extra (victoria final ciclo)
+        currentLevel = 0; // ciclo pero se mantienen mapas y cambia dificultad y colores
+        // Por exigencia entre niveles cambia color, pero seguimos incrementando dificultad
+      }
+      // Ajuste de velocidad progresiva
+      PAC_SPEED = 1.28 + (currentLevel * 0.12);
+      GHOST_SPEED = 0.82 + (currentLevel * 0.1);
+      GHOST_FRIGHTENED_SPEED = 0.6 + (currentLevel * 0.05);
+
+      loadLevel(currentLevel);
+      resetPositions();
+      levelComplete = false;
+      flashWin = false;
+      running = true;
+      extraLifeGiven = false;
+      startReadyState();
+      updateUI();
+      document.getElementById('gameStatusMsg').innerHTML = " READY! ";
+    }
+
+    // Pérdida de vida
+    function loseLife() {
+      lives--;
+      updateUI();
+      if(lives <= 0) {
+        running = false;
+        levelComplete = false;
+        document.getElementById('gameStatusMsg').innerHTML = "💀 GAME OVER 💀";
+        return;
+      }
+      resetPositions();
+      startReadyState();
+      running = true;   // pero en ready mode no se actualiza movimiento
+      frightenedMode = false;
+      for(let g of ghosts) g.setFrightened(false);
+      document.getElementById('gameStatusMsg').innerHTML = "❤️ -1 LIFE";
+      setTimeout(() => {
+        if(running && readyMode) document.getElementById('gameStatusMsg').innerHTML = " READY! ";
+      }, 1000);
+    }
+
+    // Actualización general del juego
+    function updateGame() {
+      if(!running || levelComplete) return;
+      if(readyMode) {
+        readyTimer -= 16;
+        if(readyTimer <= 0) {
+          readyMode = false;
+          document.getElementById('gameStatusMsg').innerHTML = "▶ PLAY";
+        }
+        return;
+      }
+
+      // Modo asustado
+      if(frightenedMode) {
+        frightenedTimer -= 16;
+        if(frightenedTimer <= 0) {
+          frightenedMode = false;
+          for(let g of ghosts) g.setFrightened(false);
         }
       }
-      
-      function draw() {
-        if (isFlashing) {
-          flashTimer++;
-          const flashSpeed = Math.floor(flashTimer / 15) % 2;
-          if (flashSpeed === 0) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, TILE * COLS, TILE * ROWS);
+
+      updatePacman();
+      eatDot(pac.x, pac.y);
+      eatPowerPellet(pac.x, pac.y);
+
+      for(let g of ghosts) g.update();
+
+      // Colisiones
+      for(let g of ghosts) {
+        const dx = g.px - pac.px;
+        const dy = g.py - pac.py;
+        const dist = Math.hypot(dx, dy);
+        if(dist < pac.radius + g.radius - 2) {
+          if(g.frightened) {
+            score += 200;
+            updateUI();
+            g.respawn();
+            checkExtraLife();
+          } else {
+            loseLife();
+            if(lives <= 0) running = false;
             return;
           }
         }
-        
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, TILE * COLS, TILE * ROWS);
-        
-        // Dibujar paredes
-        for (let y = 0; y < ROWS; y++) {
-          for (let x = 0; x < COLS; x++) {
-            if (map[y][x] === 1) {
-              if (isFlashing) {
-                const hue = (flashTimer * 5) % 360;
-                ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-              } else {
-                ctx.fillStyle = '#2121ff';
-              }
-              ctx.fillRect(x * TILE, y * TILE, TILE, TILE);
+      }
+
+      checkLevelCompletion();
+    }
+
+    // ---------- DIBUJO ESTILO ARCADE CLÁSICO ----------
+    function draw() {
+      ctx.clearRect(0, 0, COLS*TILE, ROWS*TILE);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, COLS*TILE, ROWS*TILE);
+      
+      // Obtener color de pared según nivel actual (cambia entre niveles)
+      const wallColor = WALL_COLORS[currentLevel % WALL_COLORS.length];
+      
+      // Dibujar paredes
+      for(let y=0; y<ROWS; y++) {
+        for(let x=0; x<COLS; x++) {
+          if(currentMap[y][x] === 1) {
+            if(flashWin && (Math.floor(Date.now() / 80) % 2 === 0)) {
+              ctx.fillStyle = '#ffffff';
+            } else {
+              ctx.fillStyle = wallColor;
             }
+            ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
           }
         }
-        
-        // Puntos normales
-        if (!isFlashing) {
-          ctx.fillStyle = '#ffd35a';
-          for (let y = 0; y < ROWS; y++) {
-            for (let x = 0; x < COLS; x++) {
-              if (dots[y] && dots[y][x]) {
-                ctx.beginPath();
-                ctx.arc(x * TILE + TILE/2, y * TILE + TILE/2, 2, 0, Math.PI * 2);
-                ctx.fill();
-              }
-            }
-          }
-        }
-        
-        // Power Pellets
-        if (!isFlashing) {
-          for (const pellet of powerPellets) {
-            if (pellet.active) {
-              const pulse = Math.sin(Date.now() * 0.005) * 1.5;
-              ctx.fillStyle = '#ffaa44';
+      }
+      
+      // Puntos normales
+      if(!flashWin) {
+        ctx.fillStyle = '#ffd966';
+        for(let y=0; y<ROWS; y++) {
+          for(let x=0; x<COLS; x++) {
+            if(dots[y] && dots[y][x]) {
               ctx.beginPath();
-              ctx.arc(pellet.x * TILE + TILE/2, pellet.y * TILE + TILE/2, 6 + pulse, 0, Math.PI * 2);
+              ctx.arc(x*TILE+TILE/2, y*TILE+TILE/2, 2.2, 0, Math.PI*2);
               ctx.fill();
             }
           }
         }
-        
-        // Dibujar Pacman
-        if (running || levelComplete) {
-          const mouthOpen = 0.3 + Math.abs(Math.sin(pac.mouth)) * 0.3;
-          let angle = 0;
-          if (pac.dir.x === 1) angle = 0;
-          else if (pac.dir.x === -1) angle = Math.PI;
-          else if (pac.dir.y === -1) angle = -Math.PI/2;
-          else if (pac.dir.y === 1) angle = Math.PI/2;
-          
-          ctx.fillStyle = '#ffd400';
-          ctx.beginPath();
-          ctx.arc(pac.px, pac.py, pac.radius, angle + mouthOpen, angle + Math.PI * 2 - mouthOpen);
-          ctx.lineTo(pac.px, pac.py);
-          ctx.fill();
-          
-          ctx.fillStyle = '#000';
-          ctx.beginPath();
-          ctx.arc(pac.px + (pac.dir.x * 3), pac.py + (pac.dir.y * 3) - 2, 2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        
-        // Dibujar fantasmas
-        for (const g of ghosts) {
-          ctx.save();
-          ctx.translate(g.px, g.py);
-          
-          let color = g.color;
-          if (g.frightened && frightenedTimer < 2000) {
-            color = Math.floor(Date.now() / 200) % 2 === 0 ? '#ffffff' : '#6b6bff';
-          }
-          
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(0, -2, g.radius, Math.PI, 0);
-          ctx.lineTo(g.radius, g.radius);
-          for (let i = 0; i < 4; i++) {
-            const waveX = g.radius - (i * g.radius/2);
-            ctx.quadraticCurveTo(waveX - g.radius/4, g.radius + 2, waveX - g.radius/2, g.radius);
-          }
-          ctx.lineTo(-g.radius, -2);
-          ctx.fill();
-          
-          ctx.fillStyle = '#fff';
-          ctx.beginPath();
-          ctx.arc(-2, -2, 2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.beginPath();
-          ctx.arc(3, -2, 2, 0, Math.PI * 2);
-          ctx.fill();
-          
-          if (g.frightened) {
-            ctx.fillStyle = '#000';
+      }
+      
+      // Power pellets
+      if(!flashWin) {
+        for(let p of powerPellets) {
+          if(p.active) {
+            const pulse = Math.sin(Date.now() * 0.005) * 1.2;
+            ctx.fillStyle = '#ffbb77';
             ctx.beginPath();
-            ctx.arc(-2, -2, 1, 0, Math.PI * 2);
+            ctx.arc(p.x*TILE+TILE/2, p.y*TILE+TILE/2, 6 + pulse, 0, Math.PI*2);
             ctx.fill();
+            ctx.fillStyle = '#ff9900';
             ctx.beginPath();
-            ctx.arc(3, -2, 1, 0, Math.PI * 2);
-            ctx.fill();
-          } else {
-            ctx.fillStyle = '#00f';
-            ctx.beginPath();
-            ctx.arc(-2 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(3 + g.dir.x, -2 + g.dir.y, 1, 0, Math.PI * 2);
+            ctx.arc(p.x*TILE+TILE/2, p.y*TILE+TILE/2, 4, 0, Math.PI*2);
             ctx.fill();
           }
-          
-          ctx.restore();
         }
       }
       
-      function resetGame() {
-        currentLevel = 0;
-        PAC_SPEED = 1.2;
-        GHOST_SPEED = 0.8;
-        GHOST_FRIGHTENED_SPEED = 0.6;
-        score = 0;
-        lives = 3;
-        extraLifeGiven = false;
-        levelComplete = false;
-        isFlashing = false;
-        flashTimer = 0;
-        
-        resetDotsAndPower();
-        resetPacmanPosition();
-        resetGhosts();
-        
-        running = true;
-        document.getElementById('gameStatus').innerHTML = '🟡 EN EJECUCIÓN';
-        updateScoreDisplay();
+      // Pacman
+      if(running || (!readyMode && !levelComplete) || readyMode) {
+        const angle = (() => {
+          if(pac.dir.x === 1) return 0;
+          if(pac.dir.x === -1) return Math.PI;
+          if(pac.dir.y === -1) return -Math.PI/2;
+          if(pac.dir.y === 1) return Math.PI/2;
+          return 0;
+        })();
+        const mouthOpen = 0.32 + Math.abs(Math.sin(pac.mouth)) * 0.35;
+        ctx.fillStyle = '#ffdd44';
+        ctx.beginPath();
+        ctx.arc(pac.px, pac.py, pac.radius, angle + mouthOpen, angle + Math.PI*2 - mouthOpen);
+        ctx.lineTo(pac.px, pac.py);
+        ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(pac.px + (pac.dir.x*2.5), pac.py + (pac.dir.y*2.5)-2, 1.8, 0, Math.PI*2);
+        ctx.fill();
       }
       
-      // Controles
-      function handleKeyDown(e) {
-        const key = e.key;
-        
-        if (key === 'ArrowUp' || key === 'w' || key === 'W') {
-          inputDirection = {x: 0, y: -1};
-          e.preventDefault();
-        } else if (key === 'ArrowDown' || key === 's' || key === 'S') {
-          inputDirection = {x: 0, y: 1};
-          e.preventDefault();
-        } else if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
-          inputDirection = {x: -1, y: 0};
-          e.preventDefault();
-        } else if (key === 'ArrowRight' || key === 'd' || key === 'D') {
-          inputDirection = {x: 1, y: 0};
-          e.preventDefault();
+      // Fantasmas
+      for(let g of ghosts) {
+        ctx.save();
+        ctx.translate(g.px, g.py);
+        let ghostColor = g.color;
+        if(g.frightened && frightenedTimer < 1600 && (Math.floor(Date.now()/120)%2===0)) ghostColor = '#ffffff';
+        ctx.fillStyle = ghostColor;
+        ctx.beginPath();
+        ctx.arc(0, -2, g.radius, Math.PI, 0);
+        ctx.lineTo(g.radius, g.radius);
+        for(let i=0;i<4;i++) {
+          const wx = g.radius - (i * g.radius/2);
+          ctx.quadraticCurveTo(wx - g.radius/4, g.radius+3, wx - g.radius/2, g.radius);
         }
-        
-        if (key === 'r' || key === 'R') {
-          resetGame();
-          e.preventDefault();
-        }
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-2.5, -2.5, 2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(2.5, -2.5, 2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#00aaff';
+        ctx.beginPath();
+        ctx.arc(-2, -2, 1, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(3, -2, 1, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
       }
       
-      window.addEventListener('keydown', handleKeyDown);
-      document.getElementById('resetGameBtn').addEventListener('click', resetGame);
-      
-      // Game loop
-      let lastTime = 0;
-      function gameLoop(currentTime) {
-        requestAnimationFrame(gameLoop);
-        
-        if (!lastTime) {
-          lastTime = currentTime;
-          return;
-        }
-        
-        const delta = Math.min(50, currentTime - lastTime);
-        lastTime = currentTime;
-        
-        const steps = Math.floor(delta / 16);
-        for (let i = 0; i < steps; i++) {
-          update();
-        }
-        
-        draw();
+      // Mensaje READY! sobre el lienzo (como la imagen)
+      if(readyMode && !levelComplete) {
+        ctx.font = 'bold 22px "Courier New", monospace';
+        ctx.fillStyle = '#ffff88';
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = '#ffaa33';
+        ctx.textAlign = 'center';
+        ctx.fillText("READY!", COLS*TILE/2, ROWS*TILE/2 - 20);
+        ctx.font = '12px monospace';
+        ctx.fillStyle = '#ffcc77';
+        ctx.fillText("INSERT COIN", COLS*TILE/2, ROWS*TILE/2 + 20);
+        ctx.textAlign = 'left';
       }
       
-      resetGame();
+      if(!running && !levelComplete && lives<=0) {
+        ctx.font = 'bold 22px monospace';
+        ctx.fillStyle = '#ff5555';
+        ctx.textAlign = 'center';
+        ctx.fillText("GAME OVER", COLS*TILE/2, ROWS*TILE/2);
+      }
+    }
+    
+    // Reinicio completo del juego
+    function fullReset() {
+      currentLevel = 0;
+      PAC_SPEED = 1.28;
+      GHOST_SPEED = 0.82;
+      GHOST_FRIGHTENED_SPEED = 0.6;
+      score = 0;
+      lives = 3;
+      extraLifeGiven = false;
+      levelComplete = false;
+      flashWin = false;
+      running = true;
+      loadLevel(0);
+      resetPositions();
+      updateUI();
+      startReadyState();
+      frightenedMode = false;
+      document.getElementById('gameStatusMsg').innerHTML = " READY! ";
+    }
+    
+    // Controles de teclado
+    function handleKey(e) {
+      const key = e.key;
+      if(key === 'ArrowUp' || key === 'w' || key === 'W') { inputDir = {x:0, y:-1}; e.preventDefault(); }
+      else if(key === 'ArrowDown' || key === 's' || key === 'S') { inputDir = {x:0, y:1}; e.preventDefault(); }
+      else if(key === 'ArrowLeft' || key === 'a' || key === 'A') { inputDir = {x:-1, y:0}; e.preventDefault(); }
+      else if(key === 'ArrowRight' || key === 'd' || key === 'D') { inputDir = {x:1, y:0}; e.preventDefault(); }
+      if(key === 'r' || key === 'R') { fullReset(); e.preventDefault(); }
+    }
+    
+    window.addEventListener('keydown', handleKey);
+    document.getElementById('resetGameBtn').addEventListener('click', fullReset);
+    
+    // Cargar HighScore inicial
+    if(localStorage.getItem('pac_high')) highScore = parseInt(localStorage.getItem('pac_high')) || 0;
+    function saveHigh() { if(score>highScore) localStorage.setItem('pac_high', highScore); }
+    setInterval(saveHigh, 2000);
+    
+    // Inicializar
+    loadLevel(0);
+    resetPositions();
+    updateUI();
+    startReadyState();
+    
+    // Loop principal
+    let lastTimestamp = 0;
+    function gameLoop(now) {
       requestAnimationFrame(gameLoop);
-    })();
-  </script>
+      if(!lastTimestamp) { lastTimestamp = now; return; }
+      let delta = Math.min(50, now - lastTimestamp);
+      if(delta > 0) {
+        const steps = Math.max(1, Math.floor(delta / 16));
+        for(let i=0;i<steps;i++) updateGame();
+      }
+      lastTimestamp = now;
+      draw();
+    }
+    requestAnimationFrame(gameLoop);
+  })();
+</script>
 </body>
 </html>
